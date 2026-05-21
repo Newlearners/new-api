@@ -65,6 +65,29 @@ export type CodexOAuthCompleteResponse = {
   }
 }
 
+export type GeminiOAuthStartResponse = {
+  success: boolean
+  message?: string
+  data?: {
+    authorize_url?: string
+    redirect_uri?: string
+    scopes?: string
+  }
+}
+
+export type GeminiOAuthCompleteResponse = {
+  success: boolean
+  message?: string
+  data?: {
+    key?: string
+    account_id?: string
+    email?: string
+    project_id?: string
+    expires_at?: string
+    last_refresh?: string
+  }
+}
+
 export type CodexUsageResponse = {
   success: boolean
   message?: string
@@ -80,6 +103,7 @@ export type CodexCredentialRefreshResponse = {
     last_refresh?: string
     account_id?: string
     email?: string
+    project_id?: string
     channel_id?: number
     channel_type?: number
     channel_name?: string
@@ -298,6 +322,45 @@ export async function getCodexUsage(
 }
 
 // ============================================================================
+// Gemini Channel Operations
+// ============================================================================
+
+export async function startGeminiOAuth(data: {
+  client_id: string
+  redirect_uri?: string
+  scopes?: string
+}): Promise<GeminiOAuthStartResponse> {
+  const config: ExtendedApiConfig = { skipBusinessError: true }
+  const res = await api.post('/api/channel/gemini/oauth/start', data, config)
+  return res.data
+}
+
+export async function completeGeminiOAuth(data: {
+  input: string
+  client_id: string
+  client_secret?: string
+  project_id: string
+  redirect_uri?: string
+  scopes?: string
+}): Promise<GeminiOAuthCompleteResponse> {
+  const config: ExtendedApiConfig = { skipBusinessError: true }
+  const res = await api.post('/api/channel/gemini/oauth/complete', data, config)
+  return res.data
+}
+
+export async function refreshGeminiCredential(
+  channelId: number
+): Promise<CodexCredentialRefreshResponse> {
+  const config: ExtendedApiConfig = { skipBusinessError: true }
+  const res = await api.post(
+    `/api/channel/${channelId}/gemini/refresh`,
+    {},
+    config
+  )
+  return res.data
+}
+
+// ============================================================================
 // Multi-Key Management
 // ============================================================================
 
@@ -479,11 +542,12 @@ export async function deleteOllamaModel(params: {
 }
 
 /**
- * Test all enabled channels
+ * Test all channels that are not manually disabled
  */
 export async function testAllChannels(): Promise<{
   success: boolean
   message?: string
+  queued?: number
 }> {
   const res = await api.get('/api/channel/test')
   return res.data

@@ -51,9 +51,9 @@ export default defineConfig({
       },
     },
     react(),
-    vitePluginSemi({
-      cssLayer: true,
-    }),
+    // Semi UI global styles are already imported in `src/index.jsx`.
+    // Disabling the plugin avoids Sass import resolution issues during
+    // local production builds in this environment.
   ],
   optimizeDeps: {
     force: true,

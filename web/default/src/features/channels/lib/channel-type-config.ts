@@ -88,7 +88,7 @@ export const CHANNEL_TYPE_CONFIGS: Record<number, ChannelTypeConfig> = {
     name: CHANNEL_TYPES[24],
     icon: 'google',
     hints: {
-      key: 'Google API Key',
+      key: 'Google API Key or OAuth JSON credential',
       models: 'gemini-pro,gemini-pro-vision',
     },
   },

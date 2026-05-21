@@ -87,9 +87,15 @@ func testChannel(channel *model.Channel, testModel string, endpointType string, 
 				testModel = strings.TrimSpace(models[0])
 			}
 			if testModel == "" {
-				testModel = "gpt-4o-mini"
+				testModel = model.DefaultChannelTestModel
 			}
 		}
+	}
+
+	// Codex upstream currently requires stream=true for /backend-api/codex/responses.
+	// Force streaming during channel tests so imported Codex channels can be verified from UI.
+	if channel != nil && channel.Type == constant.ChannelTypeCodex && !isStream {
+		isStream = true
 	}
 
 	endpointType = normalizeChannelTestEndpoint(channel, testModel, endpointType)
@@ -871,19 +877,68 @@ func TestChannel(c *gin.Context) {
 var testAllChannelsLock sync.Mutex
 var testAllChannelsRunning bool = false
 
-func testAllChannels(notify bool) error {
+const testAllChannelsConcurrency = 8
+
+func runChannelBatchTest(channel *model.Channel, disableThreshold int64) {
+	isChannelEnabled := channel.Status == common.ChannelStatusEnabled
+	tik := time.Now()
+	result := testChannel(channel, "", "", shouldUseStreamForAutomaticChannelTest(channel))
+	tok := time.Now()
+	milliseconds := tok.Sub(tik).Milliseconds()
+
+	shouldBanChannel := false
+	newAPIError := result.newAPIError
+	// request error disables the channel
+	if newAPIError != nil {
+		shouldBanChannel = service.ShouldDisableChannel(result.newAPIError)
+	}
+
+	// 当错误检查通过，才检查响应时间
+	if common.AutomaticDisableChannelEnabled && !shouldBanChannel {
+		if milliseconds > disableThreshold {
+			err := fmt.Errorf("响应时间 %.2fs 超过阈值 %.2fs", float64(milliseconds)/1000.0, float64(disableThreshold)/1000.0)
+			newAPIError = types.NewOpenAIError(err, types.ErrorCodeChannelResponseTimeExceeded, http.StatusRequestTimeout)
+			shouldBanChannel = true
+		}
+	}
+
+	// disable channel
+	if isChannelEnabled && shouldBanChannel && channel.GetAutoBan() {
+		processChannelError(result.context, *types.NewChannelError(channel.Id, channel.Type, channel.Name, channel.ChannelInfo.IsMultiKey, common.GetContextKeyString(result.context, constant.ContextKeyChannelKey), channel.GetAutoBan()), newAPIError)
+	}
+
+	// enable channel
+	if !isChannelEnabled && service.ShouldEnableChannel(newAPIError, channel.Status) {
+		service.EnableChannel(channel.Id, common.GetContextKeyString(result.context, constant.ContextKeyChannelKey), channel.Name)
+	}
+
+	channel.UpdateResponseTime(milliseconds)
+}
+
+func testAllChannels(notify bool) (int, error) {
 
 	testAllChannelsLock.Lock()
 	if testAllChannelsRunning {
 		testAllChannelsLock.Unlock()
-		return errors.New("测试已在运行中")
+		return 0, errors.New("测试已在运行中")
 	}
 	testAllChannelsRunning = true
 	testAllChannelsLock.Unlock()
 	channels, getChannelErr := model.GetAllChannels(0, 0, true, false)
 	if getChannelErr != nil {
-		return getChannelErr
+		testAllChannelsLock.Lock()
+		testAllChannelsRunning = false
+		testAllChannelsLock.Unlock()
+		return 0, getChannelErr
 	}
+	testableChannels := make([]*model.Channel, 0, len(channels))
+	for _, channel := range channels {
+		if channel.Status == common.ChannelStatusManuallyDisabled {
+			continue
+		}
+		testableChannels = append(testableChannels, channel)
+	}
+	testableCount := len(testableChannels)
 	var disableThreshold = int64(common.ChannelDisableThreshold * 1000)
 	if disableThreshold == 0 {
 		disableThreshold = 10000000 // a impossible value
@@ -896,62 +951,54 @@ func testAllChannels(notify bool) error {
 			testAllChannelsLock.Unlock()
 		}()
 
-		for _, channel := range channels {
-			if channel.Status == common.ChannelStatusManuallyDisabled {
-				continue
-			}
-			isChannelEnabled := channel.Status == common.ChannelStatusEnabled
-			tik := time.Now()
-			result := testChannel(channel, "", "", shouldUseStreamForAutomaticChannelTest(channel))
-			tok := time.Now()
-			milliseconds := tok.Sub(tik).Milliseconds()
-
-			shouldBanChannel := false
-			newAPIError := result.newAPIError
-			// request error disables the channel
-			if newAPIError != nil {
-				shouldBanChannel = service.ShouldDisableChannel(result.newAPIError)
-			}
-
-			// 当错误检查通过，才检查响应时间
-			if common.AutomaticDisableChannelEnabled && !shouldBanChannel {
-				if milliseconds > disableThreshold {
-					err := fmt.Errorf("响应时间 %.2fs 超过阈值 %.2fs", float64(milliseconds)/1000.0, float64(disableThreshold)/1000.0)
-					newAPIError = types.NewOpenAIError(err, types.ErrorCodeChannelResponseTimeExceeded, http.StatusRequestTimeout)
-					shouldBanChannel = true
-				}
-			}
-
-			// disable channel
-			if isChannelEnabled && shouldBanChannel && channel.GetAutoBan() {
-				processChannelError(result.context, *types.NewChannelError(channel.Id, channel.Type, channel.Name, channel.ChannelInfo.IsMultiKey, common.GetContextKeyString(result.context, constant.ContextKeyChannelKey), channel.GetAutoBan()), newAPIError)
-			}
-
-			// enable channel
-			if !isChannelEnabled && service.ShouldEnableChannel(newAPIError, channel.Status) {
-				service.EnableChannel(channel.Id, common.GetContextKeyString(result.context, constant.ContextKeyChannelKey), channel.Name)
-			}
-
-			channel.UpdateResponseTime(milliseconds)
-			time.Sleep(common.RequestInterval)
+		workerCount := testAllChannelsConcurrency
+		if testableCount < workerCount {
+			workerCount = testableCount
 		}
+		if workerCount <= 0 {
+			if notify {
+				service.NotifyRootUser(dto.NotifyTypeChannelTest, "通道测试完成", "没有可测试的通道")
+			}
+			return
+		}
+
+		jobs := make(chan *model.Channel)
+		var wg sync.WaitGroup
+		for i := 0; i < workerCount; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				for channel := range jobs {
+					runChannelBatchTest(channel, disableThreshold)
+					if common.RequestInterval > 0 {
+						time.Sleep(common.RequestInterval)
+					}
+				}
+			}()
+		}
+		for _, channel := range testableChannels {
+			jobs <- channel
+		}
+		close(jobs)
+		wg.Wait()
 
 		if notify {
-			service.NotifyRootUser(dto.NotifyTypeChannelTest, "通道测试完成", "所有通道测试已完成")
+			service.NotifyRootUser(dto.NotifyTypeChannelTest, "通道测试完成", fmt.Sprintf("已完成 %d 个未手动禁用通道测试", testableCount))
 		}
 	})
-	return nil
+	return testableCount, nil
 }
 
 func TestAllChannels(c *gin.Context) {
-	err := testAllChannels(true)
+	queued, err := testAllChannels(true)
 	if err != nil {
 		common.ApiError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"message": "",
+		"message": fmt.Sprintf("已开始测试 %d 个未手动禁用通道", queued),
+		"queued":  queued,
 	})
 }
 
@@ -973,7 +1020,7 @@ func AutomaticallyTestChannels() {
 				time.Sleep(time.Duration(int(math.Round(frequency))) * time.Minute)
 				common.SysLog(fmt.Sprintf("automatically test channels with interval %f minutes", frequency))
 				common.SysLog("automatically testing all channels")
-				_ = testAllChannels(false)
+				_, _ = testAllChannels(false)
 				common.SysLog("automatically channel test finished")
 				if !operation_setting.GetMonitorSetting().AutoTestChannelEnabled {
 					break

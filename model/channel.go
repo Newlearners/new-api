@@ -59,6 +59,20 @@ type Channel struct {
 	Keys []string `json:"-" gorm:"-"`
 }
 
+const DefaultChannelTestModel = "gpt-5.5"
+
+func (channel *Channel) EnsureDefaultTestModel() {
+	if channel == nil {
+		return
+	}
+	if channel.TestModel == nil || strings.TrimSpace(*channel.TestModel) == "" {
+		channel.TestModel = common.GetPointer(DefaultChannelTestModel)
+		return
+	}
+	trimmed := strings.TrimSpace(*channel.TestModel)
+	channel.TestModel = common.GetPointer(trimmed)
+}
+
 type ChannelInfo struct {
 	IsMultiKey             bool                  `json:"is_multi_key"`                        // 是否多Key模式
 	MultiKeySize           int                   `json:"multi_key_size"`                      // 多Key模式下的Key数量
@@ -427,6 +441,9 @@ func BatchInsertChannels(channels []Channel) error {
 	if len(channels) == 0 {
 		return nil
 	}
+	for i := range channels {
+		channels[i].EnsureDefaultTestModel()
+	}
 	tx := DB.Begin()
 	if tx.Error != nil {
 		return tx.Error
@@ -515,6 +532,7 @@ func (channel *Channel) GetStatusCodeMapping() string {
 
 func (channel *Channel) Insert() error {
 	var err error
+	channel.EnsureDefaultTestModel()
 	err = DB.Create(channel).Error
 	if err != nil {
 		return err
@@ -524,6 +542,9 @@ func (channel *Channel) Insert() error {
 }
 
 func (channel *Channel) Update() error {
+	if channel.TestModel != nil {
+		channel.EnsureDefaultTestModel()
+	}
 	// If this is a multi-key channel, recalculate MultiKeySize based on the current key list to avoid inconsistency after editing keys
 	if channel.ChannelInfo.IsMultiKey {
 		var keyStr string

@@ -12,6 +12,7 @@ import (
 	"github.com/QuantumNous/new-api/relay/channel/openai"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/relay/constant"
+	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/setting/model_setting"
 	"github.com/QuantumNous/new-api/setting/reasoning"
 	"github.com/QuantumNous/new-api/types"
@@ -172,6 +173,20 @@ func (a *Adaptor) GetRequestURL(info *relaycommon.RelayInfo) (string, error) {
 
 func (a *Adaptor) SetupRequestHeader(c *gin.Context, req *http.Header, info *relaycommon.RelayInfo) error {
 	channel.SetupApiRequestHeader(info, c, req)
+	if info.ChannelOtherSettings.GeminiKeyType == dto.GeminiKeyTypeOAuth || service.IsGeminiOAuthCredential(info.ApiKey) {
+		oauthKey, err := service.ResolveGeminiOAuthKeyForRequest(
+			c.Request.Context(),
+			info.ChannelId,
+			info.ChannelIsMultiKey,
+			info.ChannelMultiKeyIndex,
+			info.ApiKey,
+			info.ChannelSetting.Proxy,
+		)
+		if err != nil {
+			return err
+		}
+		return service.SetGeminiOAuthHeaders(*req, oauthKey)
+	}
 	req.Set("x-goog-api-key", info.ApiKey)
 	return nil
 }

@@ -89,6 +89,236 @@ func buildChannelListQuery(group string, statusFilter int, typeFilter int) *gorm
 	return query
 }
 
+func validateSingleCodexChannelKey(raw string) error {
+	trimmedKey := strings.TrimSpace(raw)
+	if !strings.HasPrefix(trimmedKey, "{") {
+		return fmt.Errorf("Codex key must be a valid JSON object")
+	}
+	var oauthKey service.CodexOAuthKey
+	if err := common.Unmarshal([]byte(trimmedKey), &oauthKey); err != nil {
+		return fmt.Errorf("Codex key must be a valid JSON object")
+	}
+	accessToken := strings.TrimSpace(oauthKey.AccessToken)
+	sessionToken := strings.TrimSpace(oauthKey.SessionToken)
+	if accessToken == "" && sessionToken == "" {
+		return fmt.Errorf("Codex key JSON must include access_token or session_token")
+	}
+	accountID := strings.TrimSpace(oauthKey.AccountID)
+	if accountID == "" && accessToken != "" {
+		if extracted, ok := service.ExtractCodexAccountIDFromJWT(accessToken); ok {
+			accountID = extracted
+		}
+	}
+	if accountID == "" && sessionToken == "" {
+		return fmt.Errorf("Codex key JSON must include account_id")
+	}
+	return nil
+}
+
+func validateCodexChannelKey(raw string) error {
+	trimmedKey := strings.TrimSpace(raw)
+	if err := validateSingleCodexChannelKey(trimmedKey); err == nil {
+		return nil
+	} else if !strings.Contains(trimmedKey, "\n") {
+		return err
+	}
+
+	lineNo := 0
+	for _, line := range strings.Split(trimmedKey, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		lineNo++
+		if err := validateSingleCodexChannelKey(line); err != nil {
+			return fmt.Errorf("Codex key line %d invalid: %w", lineNo, err)
+		}
+	}
+	if lineNo == 0 {
+		return fmt.Errorf("Codex key must be a valid JSON object")
+	}
+	return nil
+}
+
+func refreshCodexCredentialFromSession(ctx context.Context, channel *model.Channel, oauthKey *service.CodexOAuthKey) error {
+	sessionToken := service.NormalizeCodexSessionToken(oauthKey.SessionToken)
+	if sessionToken == "" {
+		return fmt.Errorf("codex channel: session_token is required")
+	}
+	refreshCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+
+	res, err := service.RefreshCodexAccessTokenWithSessionToken(refreshCtx, sessionToken, channel.GetBaseURL(), channel.GetSetting().Proxy)
+	if err != nil {
+		return err
+	}
+	oauthKey.AccessToken = res.AccessToken
+	oauthKey.SessionToken = sessionToken
+	oauthKey.LastRefresh = time.Now().Format(time.RFC3339)
+	if !res.ExpiresAt.IsZero() {
+		oauthKey.Expired = res.ExpiresAt.Format(time.RFC3339)
+	}
+	if strings.TrimSpace(oauthKey.Email) == "" && strings.TrimSpace(res.Email) != "" {
+		oauthKey.Email = strings.TrimSpace(res.Email)
+	}
+	return nil
+}
+
+func codexCredentialNeedsRefresh(oauthKey service.CodexOAuthKey) bool {
+	accessToken := strings.TrimSpace(oauthKey.AccessToken)
+	if accessToken == "" {
+		return true
+	}
+	if expiresAt, ok := service.ExtractExpiresAtFromJWT(accessToken); ok {
+		return time.Until(expiresAt) <= 5*time.Minute
+	}
+	expiredRaw := strings.TrimSpace(oauthKey.Expired)
+	if expiredRaw == "" {
+		return false
+	}
+	expiresAt, err := time.Parse(time.RFC3339, expiredRaw)
+	return err == nil && time.Until(expiresAt) <= 5*time.Minute
+}
+
+func prepareSingleCodexChannelKeyForSave(ctx context.Context, channel *model.Channel, raw string) (string, error) {
+	var oauthKey service.CodexOAuthKey
+	if err := common.Unmarshal([]byte(strings.TrimSpace(raw)), &oauthKey); err != nil {
+		return "", fmt.Errorf("Codex key must be a valid JSON object")
+	}
+
+	oauthKey.SessionToken = service.NormalizeCodexSessionToken(oauthKey.SessionToken)
+	if oauthKey.SessionToken != "" && codexCredentialNeedsRefresh(oauthKey) {
+		if err := refreshCodexCredentialFromSession(ctx, channel, &oauthKey); err != nil {
+			return "", fmt.Errorf("failed to refresh access_token with session_token: %w", err)
+		}
+	}
+
+	if accountID, ok := service.ExtractCodexAccountIDFromJWT(oauthKey.AccessToken); ok {
+		oauthKey.AccountID = accountID
+	}
+	if email, ok := service.ExtractEmailFromJWT(oauthKey.AccessToken); ok {
+		oauthKey.Email = email
+	}
+	if expiresAt, ok := service.ExtractExpiresAtFromJWT(oauthKey.AccessToken); ok {
+		oauthKey.Expired = expiresAt.Format(time.RFC3339)
+	}
+
+	if strings.TrimSpace(oauthKey.AccountID) == "" && oauthKey.SessionToken != "" {
+		if err := refreshCodexCredentialFromSession(ctx, channel, &oauthKey); err != nil {
+			return "", fmt.Errorf("failed to refresh access_token with session_token: %w", err)
+		}
+		if accountID, ok := service.ExtractCodexAccountIDFromJWT(oauthKey.AccessToken); ok {
+			oauthKey.AccountID = accountID
+		}
+		if email, ok := service.ExtractEmailFromJWT(oauthKey.AccessToken); ok {
+			oauthKey.Email = email
+		}
+	}
+
+	if strings.TrimSpace(oauthKey.AccessToken) == "" {
+		return "", fmt.Errorf("Codex key JSON must include access_token or a valid session_token")
+	}
+	if strings.TrimSpace(oauthKey.AccountID) == "" {
+		return "", fmt.Errorf("Codex key JSON must include account_id")
+	}
+	if strings.TrimSpace(oauthKey.Type) == "" {
+		oauthKey.Type = "codex"
+	}
+
+	encoded, err := common.Marshal(oauthKey)
+	if err != nil {
+		return "", err
+	}
+	return string(encoded), nil
+}
+
+func prepareCodexChannelKeyForSave(ctx context.Context, channel *model.Channel, raw string) (string, error) {
+	trimmedKey := strings.TrimSpace(raw)
+	if prepared, err := prepareSingleCodexChannelKeyForSave(ctx, channel, trimmedKey); err == nil {
+		return prepared, nil
+	} else if !strings.Contains(trimmedKey, "\n") {
+		return "", err
+	}
+
+	keys := make([]string, 0)
+	lineNo := 0
+	for _, line := range strings.Split(trimmedKey, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		lineNo++
+		prepared, err := prepareSingleCodexChannelKeyForSave(ctx, channel, line)
+		if err != nil {
+			return "", fmt.Errorf("Codex key line %d invalid: %w", lineNo, err)
+		}
+		keys = append(keys, prepared)
+	}
+	if len(keys) == 0 {
+		return "", fmt.Errorf("Codex key must be a valid JSON object")
+	}
+	return strings.Join(keys, "\n"), nil
+}
+
+func isGeminiOAuthChannel(channel *model.Channel) bool {
+	return channel != nil &&
+		channel.Type == constant.ChannelTypeGemini &&
+		channel.GetOtherSettings().GeminiKeyType == dto.GeminiKeyTypeOAuth
+}
+
+func validateGeminiOAuthChannelKey(raw string) error {
+	trimmedKey := strings.TrimSpace(raw)
+	if err := service.ValidateGeminiOAuthKey(trimmedKey); err == nil {
+		return nil
+	} else if !strings.Contains(trimmedKey, "\n") {
+		return err
+	}
+
+	lineNo := 0
+	for _, line := range strings.Split(trimmedKey, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		lineNo++
+		if err := service.ValidateGeminiOAuthKey(line); err != nil {
+			return fmt.Errorf("Gemini OAuth key line %d invalid: %w", lineNo, err)
+		}
+	}
+	if lineNo == 0 {
+		return fmt.Errorf("Gemini OAuth key must be a valid JSON object")
+	}
+	return nil
+}
+
+func prepareGeminiOAuthChannelKeyForSave(ctx context.Context, channel *model.Channel, raw string) (string, error) {
+	trimmedKey := strings.TrimSpace(raw)
+	if prepared, _, err := service.PrepareGeminiOAuthKeyForSave(ctx, trimmedKey, channel.GetSetting().Proxy); err == nil {
+		return prepared, nil
+	} else if !strings.Contains(trimmedKey, "\n") {
+		return "", err
+	}
+
+	keys := make([]string, 0)
+	lineNo := 0
+	for _, line := range strings.Split(trimmedKey, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		lineNo++
+		prepared, _, err := service.PrepareGeminiOAuthKeyForSave(ctx, line, channel.GetSetting().Proxy)
+		if err != nil {
+			return "", fmt.Errorf("Gemini OAuth key line %d invalid: %w", lineNo, err)
+		}
+		keys = append(keys, prepared)
+	}
+	if len(keys) == 0 {
+		return "", fmt.Errorf("Gemini OAuth key must be a valid JSON object")
+	}
+	return strings.Join(keys, "\n"), nil
+}
+
 func GetAllChannels(c *gin.Context) {
 	pageInfo := common.GetPageQuery(c)
 	channelData := make([]*model.Channel, 0)
@@ -494,18 +724,17 @@ func validateChannel(channel *model.Channel, isAdd bool) error {
 	if channel.Type == constant.ChannelTypeCodex {
 		trimmedKey := strings.TrimSpace(channel.Key)
 		if isAdd || trimmedKey != "" {
-			if !strings.HasPrefix(trimmedKey, "{") {
-				return fmt.Errorf("Codex key must be a valid JSON object")
+			if err := validateCodexChannelKey(trimmedKey); err != nil {
+				return err
 			}
-			var keyMap map[string]any
-			if err := common.Unmarshal([]byte(trimmedKey), &keyMap); err != nil {
-				return fmt.Errorf("Codex key must be a valid JSON object")
-			}
-			if v, ok := keyMap["access_token"]; !ok || v == nil || strings.TrimSpace(fmt.Sprintf("%v", v)) == "" {
-				return fmt.Errorf("Codex key JSON must include access_token")
-			}
-			if v, ok := keyMap["account_id"]; !ok || v == nil || strings.TrimSpace(fmt.Sprintf("%v", v)) == "" {
-				return fmt.Errorf("Codex key JSON must include account_id")
+		}
+	}
+
+	if isGeminiOAuthChannel(channel) {
+		trimmedKey := strings.TrimSpace(channel.Key)
+		if isAdd || trimmedKey != "" {
+			if err := validateGeminiOAuthChannelKey(trimmedKey); err != nil {
+				return err
 			}
 		}
 	}
@@ -603,6 +832,14 @@ func AddChannel(c *gin.Context) {
 
 	addChannelRequest.Channel.CreatedTime = common.GetTimestamp()
 	keys := make([]string, 0)
+	geminiOAuthMode := isGeminiOAuthChannel(addChannelRequest.Channel)
+	if geminiOAuthMode && addChannelRequest.Mode != "single" {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "Gemini OAuth credentials do not support batch or multi-key creation",
+		})
+		return
+	}
 	switch addChannelRequest.Mode {
 	case "multi_to_single":
 		addChannelRequest.Channel.ChannelInfo.IsMultiKey = true
@@ -662,6 +899,28 @@ func AddChannel(c *gin.Context) {
 		}
 		localChannel := addChannelRequest.Channel
 		localChannel.Key = key
+		if localChannel.Type == constant.ChannelTypeCodex {
+			preparedKey, err := prepareCodexChannelKeyForSave(c.Request.Context(), localChannel, localChannel.Key)
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"success": false,
+					"message": err.Error(),
+				})
+				return
+			}
+			localChannel.Key = preparedKey
+		}
+		if isGeminiOAuthChannel(localChannel) {
+			preparedKey, err := prepareGeminiOAuthChannelKeyForSave(c.Request.Context(), localChannel, localChannel.Key)
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"success": false,
+					"message": err.Error(),
+				})
+				return
+			}
+			localChannel.Key = preparedKey
+		}
 		if addChannelRequest.BatchAddSetKeyPrefix2Name && len(keys) > 1 {
 			keyPrefix := localChannel.Key
 			if len(localChannel.Key) > 8 {
@@ -894,6 +1153,46 @@ func UpdateChannel(c *gin.Context) {
 		channel.ChannelInfo.MultiKeyMode = constant.MultiKeyMode(*channel.MultiKeyMode)
 	}
 
+	if isGeminiOAuthChannel(&channel.Channel) && channel.ChannelInfo.IsMultiKey {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "Gemini OAuth credentials do not support multi-key channels",
+		})
+		return
+	}
+	if isGeminiOAuthChannel(&channel.Channel) &&
+		strings.TrimSpace(channel.Key) == "" &&
+		!service.IsGeminiOAuthCredential(originChannel.Key) {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "Gemini OAuth mode requires a valid OAuth JSON credential",
+		})
+		return
+	}
+
+	if channel.Type == constant.ChannelTypeCodex && strings.TrimSpace(channel.Key) != "" {
+		preparedKey, err := prepareCodexChannelKeyForSave(c.Request.Context(), &channel.Channel, channel.Key)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": err.Error(),
+			})
+			return
+		}
+		channel.Key = preparedKey
+	}
+	if isGeminiOAuthChannel(&channel.Channel) && strings.TrimSpace(channel.Key) != "" {
+		preparedKey, err := prepareGeminiOAuthChannelKeyForSave(c.Request.Context(), &channel.Channel, channel.Key)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": err.Error(),
+			})
+			return
+		}
+		channel.Key = preparedKey
+	}
+
 	// 处理多key模式下的密钥追加/覆盖逻辑
 	if channel.KeyMode != nil && channel.ChannelInfo.IsMultiKey {
 		switch *channel.KeyMode {
@@ -1013,7 +1312,9 @@ func FetchModels(c *gin.Context) {
 
 	// remove line breaks and extra spaces.
 	key := strings.TrimSpace(req.Key)
-	key = strings.Split(key, "\n")[0]
+	if !(req.Type == constant.ChannelTypeGemini && strings.HasPrefix(key, "{")) {
+		key = strings.Split(key, "\n")[0]
+	}
 
 	if req.Type == constant.ChannelTypeOllama {
 		models, err := ollama.FetchOllamaModels(baseURL, key)
@@ -1038,7 +1339,21 @@ func FetchModels(c *gin.Context) {
 	}
 
 	if req.Type == constant.ChannelTypeGemini {
-		models, err := gemini.FetchGeminiModels(baseURL, key, "")
+		var models []string
+		var err error
+		if service.IsGeminiOAuthCredential(key) {
+			_, oauthKey, oauthErr := service.PrepareGeminiOAuthKeyForSave(c.Request.Context(), key, "")
+			if oauthErr != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"success": false,
+					"message": fmt.Sprintf("解析Gemini OAuth凭证失败: %s", oauthErr.Error()),
+				})
+				return
+			}
+			models, err = gemini.FetchGeminiModelsWithOAuth(baseURL, oauthKey.AccessToken, oauthKey.EffectiveProjectID(), "")
+		} else {
+			models, err = gemini.FetchGeminiModels(baseURL, key, "")
+		}
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,

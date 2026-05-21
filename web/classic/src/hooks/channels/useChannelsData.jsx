@@ -722,9 +722,16 @@ export const useChannelsData = () => {
   // Channel operations
   const testAllChannels = async () => {
     const res = await API.get(`/api/channel/test`);
-    const { success, message } = res.data;
+    const { success, message, queued } = res.data;
     if (success) {
-      showInfo(t('已成功开始测试所有已启用通道，请刷新页面查看结果。'));
+      const queuedCount = Number(queued ?? 0);
+      showInfo(
+        queuedCount > 0
+          ? t(
+              '已开始测试 ${count} 个未手动禁用渠道，请刷新页面查看结果。',
+            ).replace('${count}', queuedCount)
+          : t('没有可测试的渠道。'),
+      );
     } else {
       showError(message);
     }

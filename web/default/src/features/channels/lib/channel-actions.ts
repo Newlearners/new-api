@@ -550,10 +550,14 @@ export async function handleTestAllChannels(
   try {
     const response = await testAllChannels()
     if (response.success) {
+      const queued = Number(response.queued ?? 0)
       toast.success(
-        i18next.t(
-          'Testing all enabled channels started. Please refresh to see results.'
-        )
+        queued > 0
+          ? i18next.t(
+              'Testing {{count}} not manually disabled channels started. Please refresh to see results.',
+              { count: queued }
+            )
+          : i18next.t('No testable channels found.')
       )
       queryClient?.invalidateQueries({ queryKey: channelsQueryKeys.lists() })
       onSuccess?.()

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -277,12 +278,22 @@ func fetchChannelUpstreamModelIDs(channel *model.Channel) ([]string, error) {
 	}
 
 	if channel.Type == constant.ChannelTypeGemini {
-		key, _, apiErr := channel.GetNextEnabledKey()
+		key, keyIndex, apiErr := channel.GetNextEnabledKey()
 		if apiErr != nil {
 			return nil, fmt.Errorf("获取渠道密钥失败: %w", apiErr)
 		}
 		key = strings.TrimSpace(key)
-		models, err := gemini.FetchGeminiModels(baseURL, key, channel.GetSetting().Proxy)
+		var models []string
+		var err error
+		if channel.GetOtherSettings().GeminiKeyType == dto.GeminiKeyTypeOAuth || service.IsGeminiOAuthCredential(key) {
+			oauthKey, oauthErr := service.ResolveGeminiOAuthKeyForRequest(context.Background(), channel.Id, channel.ChannelInfo.IsMultiKey, keyIndex, key, channel.GetSetting().Proxy)
+			if oauthErr != nil {
+				return nil, oauthErr
+			}
+			models, err = gemini.FetchGeminiModelsWithOAuth(baseURL, oauthKey.AccessToken, oauthKey.EffectiveProjectID(), channel.GetSetting().Proxy)
+		} else {
+			models, err = gemini.FetchGeminiModels(baseURL, key, channel.GetSetting().Proxy)
+		}
 		if err != nil {
 			return nil, err
 		}

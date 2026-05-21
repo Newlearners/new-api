@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -23,6 +22,8 @@ const (
 	codexOAuthRedirectURI  = "http://localhost:1455/auth/callback"
 	codexOAuthScope        = "openid profile email offline_access"
 	codexJWTClaimPath      = "https://api.openai.com/auth"
+	codexDefaultBaseURL    = "https://chatgpt.com"
+	codexSessionPath       = "/api/auth/session"
 	defaultHTTPTimeout     = 20 * time.Second
 )
 
@@ -39,6 +40,12 @@ type CodexOAuthAuthorizationFlow struct {
 	AuthorizeURL string
 }
 
+type CodexSessionTokenResult struct {
+	AccessToken string
+	ExpiresAt   time.Time
+	Email       string
+}
+
 func RefreshCodexOAuthToken(ctx context.Context, refreshToken string) (*CodexOAuthTokenResult, error) {
 	return RefreshCodexOAuthTokenWithProxy(ctx, refreshToken, "")
 }
@@ -49,6 +56,14 @@ func RefreshCodexOAuthTokenWithProxy(ctx context.Context, refreshToken string, p
 		return nil, err
 	}
 	return refreshCodexOAuthToken(ctx, client, codexOAuthTokenURL, codexOAuthClientID, refreshToken)
+}
+
+func RefreshCodexAccessTokenWithSessionToken(ctx context.Context, sessionToken string, baseURL string, proxyURL string) (*CodexSessionTokenResult, error) {
+	client, err := getCodexOAuthHTTPClient(proxyURL)
+	if err != nil {
+		return nil, err
+	}
+	return refreshCodexAccessTokenWithSessionToken(ctx, client, buildCodexSessionURL(baseURL), sessionToken)
 }
 
 func ExchangeCodexAuthorizationCode(ctx context.Context, code string, verifier string) (*CodexOAuthTokenResult, error) {
@@ -82,6 +97,121 @@ func CreateCodexOAuthAuthorizationFlow() (*CodexOAuthAuthorizationFlow, error) {
 		Challenge:    challenge,
 		AuthorizeURL: u,
 	}, nil
+}
+
+func refreshCodexAccessTokenWithSessionToken(
+	ctx context.Context,
+	client *http.Client,
+	sessionURL string,
+	sessionToken string,
+) (*CodexSessionTokenResult, error) {
+	st := NormalizeCodexSessionToken(sessionToken)
+	if st == "" {
+		return nil, errors.New("empty session_token")
+	}
+
+	cookieHeader, err := buildCodexSessionCookieHeader(st)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, sessionURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Cookie", cookieHeader)
+	req.Header.Set("User-Agent", "Mozilla/5.0")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("codex session refresh failed: status=%d", resp.StatusCode)
+	}
+
+	var payload struct {
+		AccessToken string `json:"accessToken"`
+		Expires     string `json:"expires"`
+		User        struct {
+			Email string `json:"email"`
+		} `json:"user"`
+	}
+	if err := common.DecodeJson(resp.Body, &payload); err != nil {
+		return nil, err
+	}
+
+	accessToken := strings.TrimSpace(payload.AccessToken)
+	if accessToken == "" {
+		return nil, errors.New("codex session response missing accessToken")
+	}
+
+	var expiresAt time.Time
+	if parsed, ok := ExtractExpiresAtFromJWT(accessToken); ok {
+		expiresAt = parsed
+	}
+	if expiresAt.IsZero() {
+		if expiresRaw := strings.TrimSpace(payload.Expires); expiresRaw != "" {
+			if parsed, err := time.Parse(time.RFC3339, expiresRaw); err == nil {
+				expiresAt = parsed
+			}
+		}
+	}
+	if !expiresAt.IsZero() && time.Until(expiresAt) <= time.Minute {
+		return nil, fmt.Errorf("codex session response accessToken expired at %s", expiresAt.Format(time.RFC3339))
+	}
+
+	return &CodexSessionTokenResult{
+		AccessToken: accessToken,
+		ExpiresAt:   expiresAt,
+		Email:       strings.TrimSpace(payload.User.Email),
+	}, nil
+}
+
+func NormalizeCodexSessionToken(input string) string {
+	value := strings.Trim(strings.TrimSpace(input), `"`)
+	if value == "" {
+		return ""
+	}
+
+	for _, part := range strings.Split(value, ";") {
+		part = strings.TrimSpace(part)
+		for _, prefix := range []string{"__Secure-next-auth.session-token=", "next-auth.session-token="} {
+			if strings.HasPrefix(part, prefix) {
+				return strings.Trim(strings.TrimSpace(strings.TrimPrefix(part, prefix)), `"`)
+			}
+		}
+	}
+
+	for _, prefix := range []string{"__Secure-next-auth.session-token=", "next-auth.session-token="} {
+		if strings.HasPrefix(value, prefix) {
+			return strings.Trim(strings.TrimSpace(strings.TrimPrefix(value, prefix)), `"`)
+		}
+	}
+
+	return value
+}
+
+func buildCodexSessionCookieHeader(sessionToken string) (string, error) {
+	st := NormalizeCodexSessionToken(sessionToken)
+	if st == "" {
+		return "", errors.New("empty session_token")
+	}
+	if strings.ContainsAny(st, "\r\n;") {
+		return "", errors.New("invalid session_token")
+	}
+	return "__Secure-next-auth.session-token=" + st + "; next-auth.session-token=" + st, nil
+}
+
+func buildCodexSessionURL(baseURL string) string {
+	base := strings.TrimRight(strings.TrimSpace(baseURL), "/")
+	if base == "" {
+		base = codexDefaultBaseURL
+	}
+	return base + codexSessionPath
 }
 
 func refreshCodexOAuthToken(
@@ -300,6 +430,32 @@ func ExtractEmailFromJWT(token string) (string, bool) {
 	return s, true
 }
 
+func ExtractExpiresAtFromJWT(token string) (time.Time, bool) {
+	claims, ok := decodeJWTClaims(token)
+	if !ok {
+		return time.Time{}, false
+	}
+	v, ok := claims["exp"]
+	if !ok {
+		return time.Time{}, false
+	}
+	var exp int64
+	switch typed := v.(type) {
+	case float64:
+		exp = int64(typed)
+	case int64:
+		exp = typed
+	case int:
+		exp = int64(typed)
+	default:
+		return time.Time{}, false
+	}
+	if exp <= 0 {
+		return time.Time{}, false
+	}
+	return time.Unix(exp, 0), true
+}
+
 func decodeJWTClaims(token string) (map[string]any, bool) {
 	parts := strings.Split(token, ".")
 	if len(parts) != 3 {
@@ -310,7 +466,7 @@ func decodeJWTClaims(token string) (map[string]any, bool) {
 		return nil, false
 	}
 	var claims map[string]any
-	if err := json.Unmarshal(payloadRaw, &claims); err != nil {
+	if err := common.Unmarshal(payloadRaw, &claims); err != nil {
 		return nil, false
 	}
 	return claims, true

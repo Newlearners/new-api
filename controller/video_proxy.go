@@ -98,7 +98,28 @@ func VideoProxy(c *gin.Context) {
 			videoProxyError(c, http.StatusBadGateway, "server_error", "Failed to resolve Gemini video URL")
 			return
 		}
-		req.Header.Set("x-goog-api-key", apiKey)
+		if service.IsGeminiOAuthCredential(apiKey) {
+			oauthKey, err := service.ResolveGeminiOAuthKeyForRequest(
+				c.Request.Context(),
+				channel.Id,
+				channel.ChannelInfo.IsMultiKey,
+				0,
+				apiKey,
+				proxy,
+			)
+			if err != nil {
+				logger.LogError(c.Request.Context(), fmt.Sprintf("Failed to resolve Gemini OAuth credential for task %s: %s", taskID, err.Error()))
+				videoProxyError(c, http.StatusBadGateway, "server_error", "Failed to resolve Gemini OAuth credential")
+				return
+			}
+			if err := service.SetGeminiOAuthHeaders(req.Header, oauthKey); err != nil {
+				logger.LogError(c.Request.Context(), fmt.Sprintf("Failed to set Gemini OAuth headers for task %s: %s", taskID, err.Error()))
+				videoProxyError(c, http.StatusBadGateway, "server_error", "Failed to resolve Gemini OAuth credential")
+				return
+			}
+		} else {
+			req.Header.Set("x-goog-api-key", apiKey)
+		}
 	case constant.ChannelTypeVertexAi:
 		videoURL, err = getVertexVideoURL(channel, task)
 		if err != nil {

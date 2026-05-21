@@ -114,6 +114,7 @@ import {
   getGroups,
   getPrefillGroups,
   refreshCodexCredential,
+  refreshGeminiCredential,
   updateChannel,
 } from '../../api'
 import {
@@ -153,6 +154,7 @@ import type { Channel } from '../../types'
 import { useChannels } from '../channels-provider'
 import { CodexOAuthDialog } from '../dialogs/codex-oauth-dialog'
 import { FetchModelsDialog } from '../dialogs/fetch-models-dialog'
+import { GeminiOAuthDialog } from '../dialogs/gemini-oauth-dialog'
 import {
   MissingModelsConfirmationDialog,
   type MissingModelsAction,
@@ -305,7 +307,10 @@ export function ChannelMutateDrawer({
   const [channelKey, setChannelKey] = useState<string | null>(null)
   const [isChannelKeyLoading, setIsChannelKeyLoading] = useState(false)
   const [codexOAuthDialogOpen, setCodexOAuthDialogOpen] = useState(false)
+  const [geminiOAuthDialogOpen, setGeminiOAuthDialogOpen] = useState(false)
   const [isCodexCredentialRefreshing, setIsCodexCredentialRefreshing] =
+    useState(false)
+  const [isGeminiCredentialRefreshing, setIsGeminiCredentialRefreshing] =
     useState(false)
   const initialModelsRef = useRef<string[]>([])
   const initialModelMappingRef = useRef<string>('')
@@ -370,6 +375,8 @@ export function ChannelMutateDrawer({
     if (!open) {
       setChannelKey(null)
       setIsChannelKeyLoading(false)
+      setCodexOAuthDialogOpen(false)
+      setGeminiOAuthDialogOpen(false)
     } else if (channelId) {
       setChannelKey(null)
     }
@@ -395,6 +402,7 @@ export function ChannelMutateDrawer({
   const currentModels = form.watch('models')
   const currentModelMapping = form.watch('model_mapping')
   const awsKeyType = form.watch('aws_key_type')
+  const geminiKeyType = form.watch('gemini_key_type')
   const upstreamModelUpdateCheckEnabled = form.watch(
     'upstream_model_update_check_enabled'
   )
@@ -420,6 +428,13 @@ export function ChannelMutateDrawer({
   // Helper computed values
   const isBatchMode =
     multiKeyMode === 'batch' || multiKeyMode === 'multi_to_single'
+  const isGeminiOAuthMode = currentType === 24 && geminiKeyType === 'oauth'
+
+  useEffect(() => {
+    if (isGeminiOAuthMode && multiKeyMode !== 'single') {
+      form.setValue('multi_key_mode', 'single')
+    }
+  }, [form, isGeminiOAuthMode, multiKeyMode])
 
   // Get all models list
   const allModelsList = useMemo(
@@ -742,6 +757,25 @@ export function ChannelMutateDrawer({
       toast.error(error instanceof Error ? error.message : t('Refresh failed'))
     } finally {
       setIsCodexCredentialRefreshing(false)
+    }
+  }, [channelId, queryClient, t])
+
+  const handleRefreshGeminiCredential = useCallback(async () => {
+    if (!channelId) return
+    setIsGeminiCredentialRefreshing(true)
+    try {
+      const res = await refreshGeminiCredential(channelId)
+      if (!res.success) {
+        throw new Error(res.message || 'Failed to refresh credential')
+      }
+      toast.success(t('Credential refreshed'))
+      queryClient.invalidateQueries({
+        queryKey: channelsQueryKeys.detail(channelId),
+      })
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t('Refresh failed'))
+    } finally {
+      setIsGeminiCredentialRefreshing(false)
     }
   }, [channelId, queryClient, t])
 
@@ -1371,6 +1405,54 @@ export function ChannelMutateDrawer({
                   />
                 )}
 
+                {/* Gemini (type 24) */}
+                {currentType === 24 && (
+                  <FormField
+                    control={form.control}
+                    name='gemini_key_type'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Gemini Key Format')}</FormLabel>
+                        <Select
+                          items={[
+                            { value: 'api_key', label: t('API Key') },
+                            {
+                              value: 'oauth',
+                              label: t('Google OAuth JSON'),
+                            },
+                          ]}
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent alignItemWithTrigger={false}>
+                            <SelectGroup>
+                              <SelectItem value='api_key'>
+                                {t('API Key')}
+                              </SelectItem>
+                              <SelectItem value='oauth'>
+                                {t('Google OAuth JSON')}
+                              </SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          {field.value === 'oauth'
+                            ? t(
+                                'OAuth mode uses a Google account refresh token and does not support batch creation.'
+                              )
+                            : t('API key from the provider')}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
                 {/* AWS (type 33) */}
                 {currentType === 33 && (
                   <FormField
@@ -1837,6 +1919,7 @@ export function ChannelMutateDrawer({
                           ]}
                           onValueChange={field.onChange}
                           value={field.value}
+                          disabled={isGeminiOAuthMode}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -1857,7 +1940,11 @@ export function ChannelMutateDrawer({
                           </SelectContent>
                         </Select>
                         <FormDescription>
-                          {t(FIELD_DESCRIPTIONS.BATCH_ADD)}
+                          {isGeminiOAuthMode
+                            ? t(
+                                'OAuth mode uses a Google account refresh token and does not support batch creation.'
+                              )
+                            : t(FIELD_DESCRIPTIONS.BATCH_ADD)}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -1888,6 +1975,11 @@ export function ChannelMutateDrawer({
                           : t(
                               'Enter key, format: AccessKey|SecretAccessKey|Region'
                             )
+                      }
+                      if (currentType === 24 && geminiKeyType === 'oauth') {
+                        return t(
+                          'Paste Gemini OAuth JSON credential or use authorization flow below'
+                        )
                       }
                       if (isBatchMode) {
                         return t('Enter one key per line for batch creation')
@@ -2005,6 +2097,59 @@ export function ChannelMutateDrawer({
                   }}
                 />
 
+                {currentType === 24 && geminiKeyType === 'oauth' && (
+                  <div className='bg-muted/20 space-y-3 rounded-lg border p-4'>
+                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+                      <div className='space-y-0.5'>
+                        <div className='text-sm font-semibold'>
+                          {t('Gemini Authorization')}
+                        </div>
+                        <div className='text-muted-foreground text-xs'>
+                          {t(
+                            'Gemini channels can use a Google OAuth JSON credential as the key.'
+                          )}
+                        </div>
+                      </div>
+                      <div className='flex flex-wrap items-center gap-2'>
+                        <Button
+                          type='button'
+                          variant='outline'
+                          size='sm'
+                          onClick={() => setGeminiOAuthDialogOpen(true)}
+                        >
+                          <Link2 className='mr-2 h-4 w-4' />
+                          {t('Authorize')}
+                        </Button>
+                        {isEditing && channelId && (
+                          <Button
+                            type='button'
+                            variant='outline'
+                            size='sm'
+                            onClick={handleRefreshGeminiCredential}
+                            disabled={isGeminiCredentialRefreshing}
+                          >
+                            {isGeminiCredentialRefreshing ? (
+                              <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                            ) : (
+                              <RefreshCw className='mr-2 h-4 w-4' />
+                            )}
+                            {isGeminiCredentialRefreshing
+                              ? t('Refreshing...')
+                              : t('Refresh credential')}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    <Alert>
+                      <AlertDescription>
+                        {t(
+                          'If authorization succeeds, the generated JSON will be inserted into the key field. You still need to save the channel to persist it.'
+                        )}
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                )}
+
                 {currentType === 57 && (
                   <div className='bg-muted/20 space-y-3 rounded-lg border p-4'>
                     <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
@@ -2063,6 +2208,17 @@ export function ChannelMutateDrawer({
                   onOpenChange={setCodexOAuthDialogOpen}
                   onKeyGenerated={(key) => {
                     form.setValue('key', key, { shouldDirty: true })
+                  }}
+                />
+
+                <GeminiOAuthDialog
+                  open={geminiOAuthDialogOpen}
+                  onOpenChange={setGeminiOAuthDialogOpen}
+                  onKeyGenerated={(key) => {
+                    form.setValue('key', key, { shouldDirty: true })
+                    form.setValue('gemini_key_type', 'oauth', {
+                      shouldDirty: true,
+                    })
                   }}
                 />
 

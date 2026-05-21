@@ -1596,6 +1596,21 @@ type GeminiModelsResponse struct {
 }
 
 func FetchGeminiModels(baseURL, apiKey, proxyURL string) ([]string, error) {
+	headers := http.Header{}
+	headers.Set("x-goog-api-key", apiKey)
+	return fetchGeminiModelsWithHeaders(baseURL, proxyURL, headers)
+}
+
+func FetchGeminiModelsWithOAuth(baseURL, accessToken, projectID, proxyURL string) ([]string, error) {
+	headers := http.Header{}
+	headers.Set("Authorization", "Bearer "+strings.TrimSpace(accessToken))
+	if strings.TrimSpace(projectID) != "" {
+		headers.Set("x-goog-user-project", strings.TrimSpace(projectID))
+	}
+	return fetchGeminiModelsWithHeaders(baseURL, proxyURL, headers)
+}
+
+func fetchGeminiModelsWithHeaders(baseURL, proxyURL string, headers http.Header) ([]string, error) {
 	client, err := service.GetHttpClientWithProxy(proxyURL)
 	if err != nil {
 		return nil, fmt.Errorf("创建HTTP客户端失败: %v", err)
@@ -1618,7 +1633,11 @@ func FetchGeminiModels(baseURL, apiKey, proxyURL string) ([]string, error) {
 			return nil, fmt.Errorf("创建请求失败: %v", err)
 		}
 
-		request.Header.Set("x-goog-api-key", apiKey)
+		for key, values := range headers {
+			for _, value := range values {
+				request.Header.Add(key, value)
+			}
+		}
 
 		response, err := client.Do(request)
 		if err != nil {

@@ -32,6 +32,18 @@ func shouldAutoRefreshCodexChannelStatus(status int) bool {
 	return status == common.ChannelStatusEnabled || status == common.ChannelStatusAutoDisabled
 }
 
+func shouldRefreshCodexCredential(oauthKey *CodexOAuthKey, otherInfo string, now time.Time) bool {
+	if codexCredentialHasTokenExpiredReason(otherInfo) {
+		return true
+	}
+	expiredAtRaw := strings.TrimSpace(oauthKey.Expired)
+	expiredAt, err := time.Parse(time.RFC3339, expiredAtRaw)
+	if err != nil || expiredAt.IsZero() {
+		return true
+	}
+	return expiredAt.Sub(now) <= codexCredentialRefreshThreshold
+}
+
 func StartCodexCredentialAutoRefreshTask() {
 	codexCredentialRefreshOnce.Do(func() {
 		if !common.IsMasterNode {
@@ -68,7 +80,7 @@ func runCodexCredentialAutoRefreshOnce() {
 	for {
 		var channels []*model.Channel
 		err := model.DB.
-			Select("id", "name", "key", "status", "channel_info").
+			Select("id", "name", "key", "status", "channel_info", "other_info").
 			Where("type = ? AND (status = ? OR status = ?)",
 				constant.ChannelTypeCodex,
 				common.ChannelStatusEnabled,
@@ -107,13 +119,12 @@ func runCodexCredentialAutoRefreshOnce() {
 			}
 
 			refreshToken := strings.TrimSpace(oauthKey.RefreshToken)
-			if refreshToken == "" {
+			sessionToken := NormalizeCodexSessionToken(oauthKey.SessionToken)
+			if refreshToken == "" && sessionToken == "" {
 				continue
 			}
 
-			expiredAtRaw := strings.TrimSpace(oauthKey.Expired)
-			expiredAt, err := time.Parse(time.RFC3339, expiredAtRaw)
-			if err == nil && !expiredAt.IsZero() && expiredAt.Sub(now) > codexCredentialRefreshThreshold {
+			if !shouldRefreshCodexCredential(oauthKey, ch.OtherInfo, now) {
 				continue
 			}
 

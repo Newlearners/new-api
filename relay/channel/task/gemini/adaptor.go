@@ -2,6 +2,7 @@ package gemini
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -61,6 +62,20 @@ func (a *TaskAdaptor) BuildRequestURL(info *relaycommon.RelayInfo) (string, erro
 func (a *TaskAdaptor) BuildRequestHeader(c *gin.Context, req *http.Request, info *relaycommon.RelayInfo) error {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
+	if info.ChannelOtherSettings.GeminiKeyType == dto.GeminiKeyTypeOAuth || service.IsGeminiOAuthCredential(a.apiKey) {
+		oauthKey, err := service.ResolveGeminiOAuthKeyForRequest(
+			c.Request.Context(),
+			info.ChannelId,
+			info.ChannelIsMultiKey,
+			info.ChannelMultiKeyIndex,
+			a.apiKey,
+			info.ChannelSetting.Proxy,
+		)
+		if err != nil {
+			return err
+		}
+		return service.SetGeminiOAuthHeaders(req.Header, oauthKey)
+	}
 	req.Header.Set("x-goog-api-key", a.apiKey)
 	return nil
 }
@@ -199,7 +214,17 @@ func (a *TaskAdaptor) FetchTask(baseUrl, key string, body map[string]any, proxy 
 	}
 
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("x-goog-api-key", key)
+	if service.IsGeminiOAuthCredential(key) {
+		_, oauthKey, err := service.PrepareGeminiOAuthKeyForSave(context.Background(), key, proxy)
+		if err != nil {
+			return nil, err
+		}
+		if err := service.SetGeminiOAuthHeaders(req.Header, oauthKey); err != nil {
+			return nil, err
+		}
+	} else {
+		req.Header.Set("x-goog-api-key", key)
+	}
 
 	client, err := service.GetHttpClientWithProxy(proxy)
 	if err != nil {
