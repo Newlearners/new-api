@@ -39,6 +39,7 @@ import { SiAlipay, SiWechat, SiStripe } from 'react-icons/si';
 import {
   CreditCard,
   Coins,
+  ExternalLink,
   Wallet,
   BarChart2,
   TrendingUp,
@@ -575,6 +576,34 @@ const RechargeCard = ({
             closeIcon={null}
           />
         )}
+      </Card>
+
+      {/* 小店充值 */}
+      <Card
+        className='!rounded-xl w-full'
+        title={
+          <Text type='tertiary' strong>
+            {t('火影AI 小店充值')}
+          </Text>
+        }
+      >
+        <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
+          <Text type='secondary'>{t('可以在这里充值。')}</Text>
+          <Button
+            theme='solid'
+            type='primary'
+            icon={<ExternalLink size={16} />}
+            onClick={() =>
+              window.open(
+                'https://pay.ldxp.cn/shop/huoyingAI',
+                '_blank',
+                'noopener,noreferrer',
+              )
+            }
+          >
+            {t('前往小店充值')}
+          </Button>
+        </div>
       </Card>
 
       {/* 兑换码充值 */}

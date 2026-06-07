@@ -2711,6 +2711,9 @@
     "OAuth Client Secret": "OAuth Client Secret",
     "打开授权页面": "打开授权页面",
     "复制授权链接": "复制授权链接",
-    "请粘贴完整回调 URL（包含 code 与 state）": "请粘贴完整回调 URL（包含 code 与 state）"
+    "请粘贴完整回调 URL（包含 code 与 state）": "请粘贴完整回调 URL（包含 code 与 state）",
+    "火影AI 小店充值": "火影AI 小店充值",
+    "可以在这里充值。": "可以在这里充值。",
+    "前往小店充值": "前往小店充值"
   }
 }

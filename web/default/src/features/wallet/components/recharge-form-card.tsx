@@ -17,7 +17,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useState, useEffect } from 'react'
-import { Gift, ExternalLink, Loader2, Receipt, WalletCards } from 'lucide-react'
+import {
+  Gift,
+  ExternalLink,
+  Loader2,
+  Receipt,
+  Store,
+  WalletCards,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
@@ -428,6 +435,35 @@ export function RechargeFormCard({
           </AlertDescription>
         </Alert>
       )}
+
+      {/* Store Recharge Section */}
+      <div className='space-y-2.5 border-t pt-4 sm:space-y-3 sm:pt-6'>
+        <div className='flex items-center gap-2'>
+          <Store className='text-muted-foreground h-4 w-4' />
+          <Label className='text-muted-foreground text-xs font-medium tracking-wider uppercase'>
+            {t('HuoyingAI Store Recharge')}
+          </Label>
+        </div>
+        <div className='bg-muted/30 flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4'>
+          <p className='text-muted-foreground text-sm'>
+            {t('You can recharge in the store.')}
+          </p>
+          <Button
+            type='button'
+            className='w-full gap-2 sm:w-auto'
+            onClick={() =>
+              window.open(
+                'https://pay.ldxp.cn/shop/huoyingAI',
+                '_blank',
+                'noopener,noreferrer'
+              )
+            }
+          >
+            <ExternalLink className='h-4 w-4' />
+            {t('Recharge in Store')}
+          </Button>
+        </div>
+      </div>
 
       {/* Creem Products Section */}
       {enableCreemTopup &&

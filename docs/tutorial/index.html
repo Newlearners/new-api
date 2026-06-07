@@ -1,0 +1,2097 @@
+<!DOCTYPE html>
+<!-- saved from url=(0034)https://how88.top/relay/index.html -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude 中转站 · 使用教程</title>
+  <meta name="description" content="中转介绍、计费图解；点选进入各工具配置教程。">
+  <style>
+    /* ========== 设计系统：暖灰纸感 + 单一品牌强调色（更易显「高级」） ========== */
+    :root {
+      --bg-base: #ede8e0;
+      --bg-mesh:
+        radial-gradient(900px 480px at 92% -8%, rgba(194, 65, 12, 0.11), transparent 55%),
+        radial-gradient(700px 420px at -5% 105%, rgba(15, 118, 110, 0.08), transparent 50%),
+        linear-gradient(165deg, #f7f4ef 0%, #ebe6dd 100%);
+      --surface: #fffcfa;
+      --surface-glass: rgba(255, 252, 250, 0.72);
+      --border: rgba(41, 37, 36, 0.09);
+      --border-strong: rgba(41, 37, 36, 0.14);
+      --text: #1c1917;
+      --muted: #78716c;
+      --accent: #c2410c;
+      --accent-hover: #9a3412;
+      --accent-soft: rgba(194, 65, 12, 0.1);
+      --accent-glow: rgba(194, 65, 12, 0.22);
+      --teal: #0f766e;
+      --warn: #b45309;
+      --code-bg: #1c1917;
+      --code-fg: #e7e5e4;
+      --radius-xl: 24px;
+      --radius: 16px;
+      --radius-sm: 11px;
+      --shadow: 0 2px 8px rgba(28, 25, 22, 0.04), 0 12px 40px rgba(28, 25, 22, 0.07);
+      --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 10px 40px -10px rgba(28, 25, 22, 0.1);
+      --shadow-hover: 0 20px 50px -12px rgba(194, 65, 12, 0.18);
+      --font: ui-sans-serif, system-ui, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 15px;
+      background-color: var(--bg-base);
+      background-image: var(--bg-mesh);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    ::selection {
+      background: var(--accent-soft);
+      color: var(--text);
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      text-underline-offset: 3px;
+    }
+    a:hover { text-decoration: underline; color: var(--accent-hover); }
+
+    /* ========== 版心：首页略宽；教程页略窄便于阅读 ========== */
+    .shell {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1.5rem 1.15rem 3.5rem;
+    }
+    .shell--tutorial {
+      max-width: 720px;
+    }
+    /* 教程子页：半透明纸面板，与背景分层 */
+    .shell--tutorial.tutorial-page:not([hidden]) {
+      background: rgba(255, 252, 250, 0.88);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 1.6rem 1.35rem 2.25rem;
+      margin-top: 0.35rem;
+      box-shadow: var(--shadow-card);
+    }
+
+    /* ========== 0、标题带：与正文卡片分离，形成层次 ========== */
+    .home-title-band {
+      text-align: center;
+      padding: 1.35rem 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(165deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
+      color: #fafaf9;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: 0 12px 40px -12px rgba(37, 99, 235, 0.38);
+    }
+    .home-title-band h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5.5vw, 2.85rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.12;
+      color: #fff;
+    }
+    .home-title-band .home-title-tag {
+      display: block;
+      margin-top: 0.45rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.72;
+    }
+
+    /* ========== 首页正文面板 ========== */
+    .home-main {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card);
+      padding: clamp(1.25rem, 3vw, 2.25rem) clamp(1.1rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2rem);
+      margin-bottom: 1.5rem;
+    }
+
+    /* ========== 什么是中转站：示意图 + 问答 ========== */
+    .what-relay {
+      margin: 0.25rem 0 1.5rem;
+      text-align: left;
+    }
+    .what-relay h2 {
+      margin: 0 0 0.75rem;
+      color: var(--text);
+    }
+    .flow-svg-wrap {
+      margin: 0 auto;
+      max-width: 720px;
+      padding: 1rem 0.85rem 1.15rem;
+      border-radius: calc(var(--radius) + 4px);
+      border: 1px solid var(--border);
+      background: linear-gradient(165deg, #ffffff 0%, #fafaf9 100%);
+      box-shadow: var(--shadow);
+    }
+    .flow-svg-wrap svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      max-height: min(220px, 44vw);
+    }
+    .what-relay-faq {
+      margin: 1.1rem auto 0;
+      max-width: 52rem;
+      padding: 1rem 1.15rem 1.1rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow-card);
+    }
+    .what-relay-faq .faq-q {
+      margin: 0.85rem 0 0;
+      font-size: 0.96rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.55;
+    }
+    .what-relay-faq .faq-q:first-child { margin-top: 0; }
+    .what-relay-faq .faq-a {
+      margin: 0.4rem 0 0;
+      font-size: 0.94rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .what-relay-faq .faq-a + .faq-q { margin-top: 1rem; }
+    /* ========== 怎么计费底部：链路分组截图（美化画框） ========== */
+    .billing-figure {
+      margin: 1.35rem -0.25rem 0;
+      padding: 0.65rem;
+      border-radius: calc(var(--radius) + 2px);
+      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+      border: 1px solid var(--border-strong);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+    }
+    .billing-figure figcaption {
+      margin: 0 0 0.55rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #57534e;
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+    .billing-figure .billing-figure__inner {
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
+      line-height: 0;
+      background: #fff;
+    }
+    .billing-figure img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    /* ========== 账号说明独立块 ========== */
+    .reg-hint-card {
+      margin: 1.25rem 0 0.5rem;
+      padding: 1.1rem 1.25rem;
+      background: linear-gradient(135deg, #fffefb, #fafaf9);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      font-size: 0.95rem;
+      color: var(--text);
+      line-height: 1.65;
+    }
+    .reg-hint-card strong { color: var(--accent); }
+    .reg-hint-card p { margin: 0; }
+    /* 注册区块：标题 + 正文 + 外链按钮形态 */
+    .reg-hint-card__title {
+      margin: 0 0 0.7rem;
+      font-size: 1.12rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .reg-hint-card__body {
+      margin: 0 0 1rem;
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .reg-hint-notes {
+      margin-top: 1.1rem;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--border);
+      font-size: 0.9rem;
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .reg-hint-notes p { margin: 0.4rem 0 0; }
+    .reg-hint-notes p:first-child { margin-top: 0; }
+    /* 一、注册账号…：默认收起，点击展开（与怎么计费同交互） */
+    details.reg-hint-card--fold { padding: 0; }
+    details.reg-hint-card--fold > summary {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.55rem;
+      margin: 0;
+      padding: 1.1rem 1.25rem 1.05rem;
+      cursor: pointer;
+    }
+    details.reg-hint-card--fold > summary::-webkit-details-marker { display: none; }
+    details.reg-hint-card--fold > summary::marker { content: ""; }
+    details.reg-hint-card--fold[open] > summary {
+      border-bottom: 1px dashed var(--border);
+      padding-bottom: 1rem;
+      margin-bottom: 0.35rem;
+    }
+    details.reg-hint-card--fold .reg-hint-card__title--summary {
+      margin: 0;
+      font-family: var(--font);
+      font-size: 1.12rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      flex: 1 1 auto;
+    }
+    details.reg-hint-card--fold .reg-hint-card__title--summary .tool-config-sub {
+      display: block;
+      margin-top: 0.4rem;
+      font-size: 0.85em;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0;
+    }
+    details.reg-hint-card--fold .reg-hint-details-inner {
+      padding: 0.25rem 1.1rem 0.2rem;
+    }
+    details.reg-hint-card--fold[open] .billing-summary__hint { display: none; }
+    .reg-hint-details-inner .reg-hint-card__body { margin: 0 0 0.75rem !important; }
+    /* 本区块内三页长图：缩小图与图之间的缝，底部不留大块留白 */
+    details.reg-hint-card--fold .reg-hint-details-inner .pdf-mirror-page {
+      margin: 0 0 0.5rem;
+    }
+    details.reg-hint-card--fold .reg-hint-details-inner .pdf-mirror-page:last-of-type {
+      margin-bottom: 0;
+    }
+    .reg-hint-footer {
+      margin: 0;
+      padding: 0.35rem 0 0.15rem;
+      text-align: center;
+    }
+    .reg-hint-collapse {
+      margin: 0;
+      padding: 0.35rem 0.75rem;
+      border: none;
+      background: none;
+      font: inherit;
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+    }
+    .reg-hint-collapse:hover {
+      color: var(--accent-hover);
+    }
+    .reg-hint-collapse:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+    /* 《1、账号注册…》《Claude__中转站》等：整页栅格图（2× 导出），与源 PDF 1:1 */
+    figure.pdf-mirror-page {
+      margin: 0 0 1.35rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+    figure.pdf-mirror-page figcaption {
+      margin: 0;
+      padding: 0.45rem 0.65rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-align: center;
+      background: #fafaf9;
+      border-bottom: 1px solid var(--border);
+    }
+    /* Codex 分步图标题：高对比条带，与首页蓝标题带呼应 */
+    #view-codex figure.pdf-mirror-page figcaption {
+      padding: 0.7rem 1rem 0.75rem;
+      font-size: clamp(0.92rem, 2.8vw, 1.08rem);
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      color: #fafaf9;
+      text-align: center;
+      line-height: 1.35;
+      text-shadow: 0 1px 2px rgba(30, 58, 138, 0.4);
+      background: linear-gradient(165deg, #1e3a8a 0%, #2563eb 48%, #3b82f6 100%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+      box-shadow:
+        0 2px 8px rgba(37, 99, 235, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    /* Cherry / Claude Code / Cursor：方案·方法分组标题（高对比、易扫读） */
+    #view-cherry .cherry-scheme-title,
+    #view-claude-code .cc-method-title,
+    #view-cursor .cc-method-title,
+    #view-vscode .cc-method-title {
+      margin: 0 0 0.7rem;
+      padding: 0.55rem 1rem;
+      font-size: 0.98rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #fff;
+      text-align: center;
+      line-height: 1.3;
+      text-shadow: 0 1px 2px rgba(28, 25, 22, 0.25);
+      background: linear-gradient(135deg, #c2410c 0%, #9a3412 50%, #7c2d12 100%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--radius-sm);
+      box-shadow:
+        0 2px 6px rgba(154, 52, 18, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    }
+    #view-cherry .cherry-scheme,
+    #view-claude-code .cc-method,
+    #view-cursor .cc-method,
+    #view-vscode .cc-method {
+      margin: 0;
+    }
+    #view-cherry .cherry-scheme:first-of-type,
+    #view-claude-code .cc-method:first-of-type,
+    #view-cursor .cc-method:first-of-type,
+    #view-vscode .cc-method:first-of-type {
+      margin-top: 0.15rem;
+    }
+    #view-cherry .cherry-scheme + .cherry-scheme,
+    #view-claude-code .cc-method + .cc-method,
+    #view-cursor .cc-method + .cc-method,
+    #view-vscode .cc-method + .cc-method {
+      margin-top: 1.15rem;
+    }
+    #view-cherry .cherry-scheme-title + .pdf-mirror-page,
+    #view-claude-code .cc-method-title + .pdf-mirror-page,
+    #view-cursor .cc-method-title + .pdf-mirror-page,
+    #view-vscode .cc-method-title + .pdf-mirror-page {
+      margin-top: 0;
+    }
+    #view-claude-code .cc-method1-lead + .pdf-mirror-page,
+    #view-cursor .cc-method1-lead + .pdf-mirror-page,
+    #view-vscode .cc-method1-lead + .pdf-mirror-page {
+      margin-top: 0;
+    }
+    #view-claude-code .cc-method-title.cc-method-title--compact {
+      font-size: clamp(0.78rem, 2.9vw, 0.92rem);
+      letter-spacing: 0.03em;
+      line-height: 1.38;
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+    #view-claude-code summary.cc-method-title,
+    #view-cursor summary.cc-method-title,
+    #view-vscode summary.cc-method-title {
+      cursor: pointer;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    #view-claude-code details.cc-tutorial-fold-method2 {
+      margin-top: 1.15rem;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 2px 8px rgba(28, 25, 22, 0.06);
+    }
+    #view-claude-code details.cc-tutorial-fold-method2 > summary {
+      list-style: none;
+    }
+    #view-claude-code details.cc-tutorial-fold-method2 > summary::-webkit-details-marker {
+      display: none;
+    }
+    #view-claude-code details.cc-tutorial-fold-method2 > summary::marker {
+      content: "";
+    }
+    #view-claude-code details.cc-tutorial-fold-method2[open] > summary {
+      margin-bottom: 0.55rem;
+    }
+    #view-claude-code .cc-tutorial-fold-method2-inner {
+      padding: 0 0.15rem 0.35rem;
+    }
+    #view-claude-code .cc-tutorial-fold-method2-inner .cc-method2-section-42 {
+      margin-top: 0.2rem;
+      margin-bottom: 0.85rem;
+    }
+    #view-claude-code details.reg-hint-card.cc-errors-fold {
+      margin-top: 0.95rem;
+      margin-bottom: 1rem;
+    }
+    #view-claude-code .cc-method1-lead,
+    #view-cursor .cc-method1-lead,
+    #view-vscode .cc-method1-lead {
+      margin: 0 0 0.95rem;
+      padding: 0.85rem 0.95rem;
+      background: rgba(194, 65, 12, 0.06);
+      border: 1px solid rgba(194, 65, 12, 0.18);
+      border-radius: var(--radius-sm);
+    }
+    #view-claude-code .cc-method1-lead .btn-ccswitch-go,
+    #view-cursor .cc-method1-lead .btn-ccswitch-go,
+    #view-vscode .cc-method1-lead .btn-ccswitch-go {
+      margin-top: 0.55rem;
+    }
+    figure.pdf-mirror-page img {
+      width: 100%;
+      height: auto;
+      display: block;
+      vertical-align: top;
+    }
+    /* 首页大节主标题统一样式：与「一、」summary / 选择工具 小标题一致 */
+    .home-main .what-relay > h2,
+    .home-main .picker-head > h2 {
+      font-family: var(--font);
+      font-size: 1.12rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-align: left;
+      line-height: 1.35;
+    }
+    .hub-intro {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin: 0 0 1.1rem;
+      line-height: 1.55;
+    }
+    .hub-intro strong { color: var(--text); }
+    .hub-intro a { font-weight: 700; }
+    .hub-intro--home {
+      max-width: 52rem;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .home-cc-actions {
+      max-width: 52rem;
+      margin: 0 auto 1.75rem;
+      display: flex;
+      justify-content: center;
+    }
+    .home-cc-actions .btn-ccswitch-go {
+      width: 100%;
+      max-width: 420px;
+    }
+    .btn-ccswitch-go {
+      padding: 0.78rem 1rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 0.95rem;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(145deg, #ea580c, #c2410c 55%, #9a3412);
+      box-shadow: var(--shadow);
+      transition: transform 0.18s ease, box-shadow 0.2s ease;
+    }
+    .btn-ccswitch-go:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+    .btn-ccswitch-go:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    /* ========== 信息卡：轻拟物 + 顶边色条区分语义 ========== */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin: 1.1rem 0 1rem;
+    }
+    @media (max-width: 640px) {
+      .card-grid { grid-template-columns: 1fr; }
+    }
+    .info-card {
+      position: relative;
+      background: linear-gradient(180deg, #ffffff 0%, #fffdfb 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem 1.3rem 1.25rem;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .info-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 1.25rem;
+      right: 1.25rem;
+      height: 3px;
+      border-radius: 0 0 4px 4px;
+      opacity: 0.95;
+    }
+    /* 仅保留计费卡时：顶边用品牌渐变条 */
+    .card-grid > .info-card--wide:only-child::before {
+      left: 1.25rem;
+      right: 1.25rem;
+      background: linear-gradient(90deg, #57534e, var(--accent), var(--teal));
+    }
+    .info-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+      border-color: rgba(194, 65, 12, 0.15);
+    }
+    .info-card--wide { grid-column: 1 / -1; }
+    .info-card h2 {
+      margin: 0.35rem 0 0.55rem;
+      font-size: 1.08rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      color: var(--text);
+    }
+    .info-card .icon-wrap {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      background: linear-gradient(145deg, #fff7ed, #ffedd5);
+      border: 1px solid rgba(194, 65, 12, 0.15);
+      color: var(--accent);
+    }
+    .info-card--wide .icon-wrap {
+      background: linear-gradient(145deg, #f5f5f4, #e7e5e4);
+      border-color: var(--border-strong);
+      color: #57534e;
+    }
+    .info-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+    .info-card p + p { margin-top: 0.6rem; color: var(--text); }
+    /* 计费卡片内小标题（GPT / Opus 分表） */
+    .info-card .billing-sub {
+      margin: 1.1rem 0 0.45rem;
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #44403c;
+      letter-spacing: -0.01em;
+    }
+    .info-card .billing-sub:first-of-type { margin-top: 0.75rem; }
+    /* 怎么计费：默认收起，点击 summary 展开 */
+    details.info-card--billing { padding: 0; }
+    details.info-card--billing > summary {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.55rem;
+      margin: 0;
+      padding: 1.2rem 1.3rem 1.15rem;
+      cursor: pointer;
+      color: var(--text);
+    }
+    details.info-card--billing > summary::-webkit-details-marker { display: none; }
+    details.info-card--billing > summary::marker { content: ""; }
+    details.info-card--billing .billing-details-inner {
+      padding: 0 1.3rem 1.25rem;
+    }
+    details.info-card--billing[open] > summary {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+      margin-bottom: 0.15rem;
+    }
+    details.info-card--billing .info-card--billing__title {
+      font-family: var(--font);
+      font-size: 1.12rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      flex: 1 1 auto;
+    }
+    .billing-summary__hint {
+      margin-left: auto;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    details.info-card--billing[open] .billing-summary__hint { display: none; }
+
+    table.simple {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+      margin-top: 0.9rem;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    table.simple th, table.simple td {
+      padding: 0.55rem 0.7rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    table.simple tr:last-child td { border-bottom: none; }
+    table.simple tbody tr:nth-child(odd) { background: rgba(250, 250, 249, 0.85); }
+    table.simple th {
+      color: #57534e;
+      font-weight: 700;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      background: #f5f5f4;
+    }
+
+    /* ========== 折叠：更像「次级面板」 ========== */
+    details.fold {
+      margin-top: 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.55rem 1rem;
+      background: #fafaf9;
+    }
+    details.fold summary {
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: var(--accent);
+      list-style: none;
+    }
+    details.fold summary::-webkit-details-marker { display: none; }
+    details.fold[open] summary { margin-bottom: 0.45rem; }
+    details.fold ul { margin: 0.35rem 0 0; padding-left: 1.15rem; color: var(--muted); font-size: 0.87rem; }
+
+    /* ========== 新手三步：胶囊步骤 ========== */
+    .steps-h {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 0.85rem;
+    }
+    .step-chip {
+      flex: 1 1 168px;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      padding: 0.85rem 0.95rem;
+      background: #fffefb;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+    }
+    .step-num {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), #ea580c);
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.82rem;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+    .step-chip p { margin: 0; font-size: 0.87rem; color: var(--text); line-height: 1.45; }
+
+    /* ========== 教程分区标题 ========== */
+    .picker-head {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      margin: 1.4rem 0 1.05rem;
+    }
+    .picker-head h2 {
+      margin: 0;
+    }
+    .picker-head::before {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(41, 37, 36, 0.12), transparent);
+      order: 1;
+    }
+    .picker-head h2 { order: 0; }
+    @media (min-width: 721px) {
+      .picker-head::before { order: 2; flex: 0 0 100px; }
+    }
+    .btn-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.8rem;
+    }
+    @media (max-width: 560px) {
+      .btn-grid { grid-template-columns: 1fr; }
+    }
+    /* 教程入口：统一中性底 + 悬停琥珀描边，避免彩虹色廉价感 */
+    .btn-tutorial {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      width: 100%;
+      text-align: left;
+      padding: 1.05rem 1.15rem;
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) + 2px);
+      background: linear-gradient(180deg, #ffffff, #fffdfb);
+      box-shadow: var(--shadow);
+      font-family: inherit;
+      cursor: pointer;
+      transition: box-shadow 0.22s ease, transform 0.18s ease, border-color 0.18s ease;
+    }
+    .btn-tutorial:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-3px);
+      border-color: rgba(194, 65, 12, 0.35);
+    }
+    .btn-tutorial:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+    /* 教程入口为 <a> 时与按钮同外观，避免默认下划线与配色跳变 */
+    a.btn-tutorial {
+      text-decoration: none;
+      color: inherit;
+      box-sizing: border-box;
+    }
+    .btn-tutorial__icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      color: var(--accent);
+      background: linear-gradient(145deg, #fff7ed, #ffedd5);
+      border: 1px solid rgba(194, 65, 12, 0.18);
+    }
+    .btn-tutorial:nth-child(3n + 2) .btn-tutorial__icon {
+      color: var(--teal);
+      background: linear-gradient(145deg, #ecfdf5, #d1fae5);
+      border-color: rgba(15, 118, 110, 0.2);
+    }
+    .btn-tutorial:nth-child(3n) .btn-tutorial__icon {
+      color: #57534e;
+      background: linear-gradient(145deg, #f5f5f4, #e7e5e4);
+      border-color: var(--border-strong);
+    }
+    .btn-tutorial__body { flex: 1; min-width: 0; }
+    .btn-tutorial .t-title { font-weight: 800; font-size: 0.96rem; display: block; margin-bottom: 0.2rem; letter-spacing: -0.02em; }
+    .btn-tutorial .t-desc { font-size: 0.76rem; color: var(--muted); line-height: 1.38; }
+    .btn-tutorial__go {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      color: var(--muted);
+      background: #fafaf9;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .btn-tutorial:hover .btn-tutorial__go {
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), #ea580c);
+      border-color: transparent;
+    }
+
+    /* ========== 子页：返回键 + 深色顶栏（与首页暖色形成对比层次） ========== */
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 1.1rem;
+      padding: 0.55rem 1.1rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: color 0.2s, border-color 0.2s, transform 0.15s;
+    }
+    .btn-back:hover {
+      color: var(--accent);
+      border-color: rgba(194, 65, 12, 0.35);
+      transform: translateX(-2px);
+    }
+    .tutorial-page .tutorial-foot-back {
+      margin: 1.6rem 0 0.35rem;
+      padding-top: 1.2rem;
+      border-top: 1px dashed var(--border);
+      text-align: center;
+    }
+    .tutorial-page .tutorial-foot-back .btn-back {
+      margin-bottom: 0;
+    }
+    .tutorial-head {
+      display: flex;
+      align-items: center;
+      gap: 1.1rem;
+      margin-bottom: 1.5rem;
+      padding: 1.35rem 1.45rem;
+      border-radius: var(--radius);
+      background: linear-gradient(125deg, #1e3a8a 0%, #2563eb 48%, #3b82f6 100%);
+      color: #fafaf9;
+      box-shadow: 0 16px 40px -12px rgba(37, 99, 235, 0.42);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    .tutorial-head__icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .tutorial-head h2 {
+      margin: 0;
+      font-size: 1.28rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      border: none;
+      padding: 0;
+    }
+    .tutorial-head p {
+      margin: 0.3rem 0 0;
+      font-size: 0.86rem;
+      opacity: 0.88;
+      line-height: 1.45;
+    }
+    /* 三、Claude Code 配置：多段同页内重复的区块大标题 */
+    .cc-tutorial-block-head {
+      text-align: center;
+      margin: 0 0 1.1rem;
+      padding-bottom: 0.9rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .cc-tutorial-block-head h2 {
+      margin: 0;
+      font-size: clamp(1.1rem, 3.2vw, 1.4rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      line-height: 1.3;
+      border: none;
+      padding: 0;
+    }
+    .cc-tutorial-block-head p {
+      margin: 0.4rem 0 0;
+      font-size: 0.86rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .tutorial-page .section-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.15rem 1.3rem 1.2rem;
+      margin-bottom: 0.95rem;
+      box-shadow: var(--shadow-card);
+    }
+    .tutorial-page .section-card--tool-pdf-mirror {
+      padding: 0.65rem 0.55rem 1rem;
+    }
+    .tutorial-page .section-card--tool-pdf-mirror .pdf-mirror-page:last-of-type {
+      margin-bottom: 0;
+    }
+    .tutorial-page h3 {
+      margin: 0 0 0.55rem;
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: var(--accent);
+    }
+    .tutorial-page .hint {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin: 0 0 0.65rem;
+      line-height: 1.55;
+    }
+    .step-list { margin: 0; padding: 0; list-style: none; counter-reset: s; }
+    .step-list li {
+      counter-increment: s;
+      position: relative;
+      padding-left: 2.35rem;
+      margin-bottom: 0.7rem;
+      font-size: 0.93rem;
+    }
+    .step-list li::before {
+      content: counter(s);
+      position: absolute;
+      left: 0;
+      top: 0.05rem;
+      width: 1.7rem;
+      height: 1.7rem;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #fff7ed, #ffedd5);
+      color: var(--accent);
+      border: 1px solid rgba(194, 65, 12, 0.2);
+      font-weight: 800;
+      font-size: 0.78rem;
+      display: grid;
+      place-items: center;
+    }
+    pre {
+      margin: 0.65rem 0 0;
+      padding: 1rem 1.05rem;
+      background: var(--code-bg);
+      color: var(--code-fg);
+      border-radius: 12px;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      line-height: 1.58;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+    /* 深色代码块内选区：避免与全局 ::selection 叠加后发黑、不可读 */
+    pre ::selection,
+    pre code::selection {
+      background: #fbbf24;
+      color: #1c1917;
+    }
+    pre ::-moz-selection,
+    pre code::-moz-selection {
+      background: #fbbf24;
+      color: #1c1917;
+    }
+    .code-block-wrap {
+      margin: 0.65rem 0 0;
+    }
+    .code-block-wrap pre {
+      margin-top: 0;
+    }
+    .code-block-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-bottom: 0.4rem;
+    }
+    .btn-copy-code {
+      padding: 0.32rem 0.75rem;
+      font-size: 0.76rem;
+      font-weight: 700;
+      font-family: inherit;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .btn-copy-code:hover {
+      color: var(--accent);
+      border-color: rgba(194, 65, 12, 0.35);
+      background: #fffefb;
+    }
+    .btn-copy-code.is-done {
+      color: #0f766e;
+      border-color: rgba(15, 118, 110, 0.35);
+    }
+    code {
+      font-family: var(--mono);
+      font-size: 0.86em;
+      background: #f5f5f4;
+      color: #44403c;
+      padding: 0.12em 0.4em;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    pre code { background: none; padding: 0; border: none; color: inherit; }
+    .callout {
+      border-left: 4px solid var(--accent);
+      padding: 0.7rem 1rem;
+      margin-top: 0.85rem;
+      background: linear-gradient(90deg, #fff7ed, #fffefb);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 0.87rem;
+      color: #7c2d12;
+      border: 1px solid rgba(194, 65, 12, 0.15);
+      border-left-width: 4px;
+    }
+    .tutorial-page[hidden] { display: none !important; }
+    footer.doc-foot {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: 0.76rem;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+  </style>
+<style id="element-selector-styles">
+      .element-selector-box {
+        position: absolute;
+        pointer-events: none;
+        z-index: 10000;
+        border-radius: 0.25rem;
+      }
+
+      .element-selector-selection {
+        border: 2px solid #2196F3;
+        background-color: rgba(33, 150, 243, 0.3);
+      }
+
+      .element-selector-hover {
+        border: 1px solid #FFC107;
+        background-color: rgba(255, 193, 7, 0.3);
+      }
+
+      .element-selector-label {
+        position: absolute;
+        top: -25px;
+        left: 0;
+        background: #2196F3;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 0.25rem;
+        font-size: 12px;
+        font-family: Arial, sans-serif;
+        white-space: nowrap;
+        pointer-events: none;
+      }
+
+      .element-selector-label.hover {
+        background: #FFC107;
+        color: #000;
+      }
+    </style></head>
+<body>
+  <!-- ==================== 首页 ==================== -->
+  <div id="view-home" class="shell">
+    <!-- 0、标题独立顶带，与下方正文卡片分离 -->
+    <header class="home-title-band">
+      <h1>Claude 中转站</h1>
+      <span class="home-title-tag">使用教程</span>
+    </header>
+    <main class="home-main">
+    <!-- 1、什么是中转站：内联 SVG 流程图 + 问答 -->
+    <section class="what-relay">
+      <h2>什么是中转站？</h2>
+      <div class="flow-svg-wrap" aria-hidden="true">
+        <svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg" role="img">
+          <title>用户经中转 API 转发至 Claude 与 GPT</title>
+          <defs>
+            <lineargradient id="flowMid" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#ea580c"></stop><stop offset="55%" stop-color="#c2410c"></stop><stop offset="100%" stop-color="#9a3412"></stop>
+            </lineargradient>
+            <lineargradient id="flowUser" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#ffffff"></stop><stop offset="100%" stop-color="#fafaf9"></stop>
+            </lineargradient>
+            <lineargradient id="flowEnd" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#ecfdf5"></stop><stop offset="100%" stop-color="#d1fae5"></stop>
+            </lineargradient>
+            <filter id="flowSh" x="-8%" y="-8%" width="116%" height="116%">
+              <fedropshadow dx="0" dy="6" stdDeviation="8" flood-color="#1c1917" flood-opacity="0.08"></fedropshadow>
+            </filter>
+            <marker id="arrowHead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#a8a29e"></polygon>
+            </marker>
+          </defs>
+          <rect x="24" y="52" width="132" height="96" rx="18" fill="url(#flowUser)" stroke="#e7e5e4" stroke-width="1.5" filter="url(#flowSh)"></rect>
+          <circle cx="90" cy="82" r="9" fill="#ffedd5" stroke="#ea580c" stroke-width="1.6"></circle>
+          <path d="M72 112c2-12 10-18 18-18s16 6 18 18" fill="none" stroke="#c2410c" stroke-width="2.2" stroke-linecap="round"></path>
+          <text x="90" y="138" text-anchor="middle" fill="#44403c" font-size="15" font-weight="700" font-family="ui-sans-serif,system-ui,PingFang SC,Microsoft YaHei,sans-serif">用户</text>
+          <line x1="168" y1="100" x2="242" y2="100" stroke="#c4b8ad" stroke-width="2" marker-end="url(#arrowHead)"></line>
+          <rect x="258" y="38" width="204" height="124" rx="20" fill="url(#flowMid)" filter="url(#flowSh)"></rect>
+          <text x="360" y="86" text-anchor="middle" fill="rgba(255,255,255,0.92)" font-size="12" font-weight="600" font-family="ui-sans-serif,system-ui,sans-serif">中转</text>
+          <text x="360" y="114" text-anchor="middle" fill="#fff" font-size="16" font-weight="800" font-family="ui-sans-serif,system-ui,PingFang SC,Microsoft YaHei,sans-serif">API 转发</text>
+          <text x="360" y="140" text-anchor="middle" fill="rgba(255,255,255,0.75)" font-size="11" font-family="ui-sans-serif,system-ui,sans-serif">统一地址 · 分组 · 令牌</text>
+          <line x1="472" y1="100" x2="546" y2="100" stroke="#c4b8ad" stroke-width="2" marker-end="url(#arrowHead)"></line>
+          <rect x="558" y="44" width="148" height="112" rx="18" fill="url(#flowEnd)" stroke="#6ee7b7" stroke-width="1.5" filter="url(#flowSh)"></rect>
+          <text x="632" y="88" text-anchor="middle" fill="#0f766e" font-size="16" font-weight="800" font-family="ui-sans-serif,Georgia,serif">Claude</text>
+          <text x="632" y="112" text-anchor="middle" fill="#115e59" font-size="13" font-weight="700" font-family="ui-sans-serif,system-ui,sans-serif">&amp;</text>
+          <text x="632" y="136" text-anchor="middle" fill="#047857" font-size="16" font-weight="800" font-family="ui-sans-serif,system-ui,sans-serif">GPT</text>
+        </svg>
+      </div>
+      <div class="what-relay-faq">
+        <p class="faq-q">需要我自己有账号吗？冲我的账号吗？</p>
+        <p class="faq-a">答：无需注册 claude 账号，注册我们的网站账号即可快速获取 key 和续费，通过我们中转快速使用 Claude 和 GPT模型</p>
+        <p class="faq-q">会封号吗？</p>
+        <p class="faq-a">答：无封号风险，封号全额包赔，我们为你承担封号风险。</p>
+      </div>
+    </section>
+
+    <div class="card-grid">
+      <details class="info-card info-card--wide info-card--billing">
+        <summary>
+          <span class="icon-wrap" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"></path></svg>
+          </span>
+          <span class="info-card--billing__title">怎么计费？</span>
+          <span class="billing-summary__hint" aria-hidden="true">点击展开</span>
+        </summary>
+        <div class="billing-details-inner">
+        <p><strong>按次计费</strong>：计的是「<strong>模型请求</strong>」次数，<strong>不是</strong>「聊天次数」；与单次 token <strong>无关</strong>，<strong>只看次数、不看 token</strong>。不明白可以问 AI。</p>
+        <h3 class="billing-sub">分组参考（按次 / 倍率）</h3>
+        <table class="simple">
+          <thead><tr><th>分组</th><th>倍率</th><th>Opus 次数</th><th>Sonnet 次数</th></tr></thead>
+          <tbody>
+            <tr><td>VIP（kiro、cursor）</td><td>1×</td><td>222</td><td>400</td></tr>
+            <tr><td>临时（aws、wf、反重力）</td><td>4×</td><td>55</td><td>100</td></tr>
+            <tr><td>SVIP（官方max订阅号池）</td><td>10×</td><td>22</td><td>40</td></tr>
+          </tbody>
+        </table>
+        <h3 class="billing-sub">GPT（按次）</h3>
+        <table class="simple">
+          <thead><tr><th>模型档位</th><th>单价（按次）</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>GPT 5.3 / 5.4</td><td>0.6 / 次</td><td>选 GPT 分组，以控制台为准</td></tr>
+            <tr><td>GPT 5.5</td><td>1.2 / 次</td><td>同上</td></tr>
+          </tbody>
+        </table>
+        <h3 class="billing-sub">Claude Opus 4.7（按量计费）</h3>
+        <table class="simple">
+          <thead><tr><th>版本</th><th>倍率</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>逆向版</td><td>5×</td><td>按量收费，WF 逆向</td></tr>
+            <tr><td>满血版</td><td>10×</td><td>按量收费，官方 Max 号池</td></tr>
+            <tr><td>逆向按次版</td><td>10×</td><td>按次收费，WF逆向号池，单次请求3.6</td></tr>
+          </tbody>
+        </table>
+        <figure class="billing-figure">
+          <figcaption>链路分组与号池示意</figcaption>
+          <div class="billing-figure__inner">
+            <img src="./pics/billing-flow-architecture.png" alt="用户至中转、链路分组至各号池的流程图" loading="lazy" decoding="async">
+          </div>
+        </figure>
+        <h3 class="billing-sub">如何查看分组、价格、模型名称？</h3>
+        <p>以控制台「模型 / 计价」页为准（地址以网站实际菜单为准）。对照方式如下：</p>
+        <ul style="margin:0.5rem 0 1rem; padding-left:1.25rem; color: var(--muted); font-size: 0.92rem; line-height: 1.7">
+          <li><strong>分组在哪看：</strong>左侧 <strong>「可用令牌分组」</strong> 里点选（如 GPT、default、vip、临时、svip、opus4.7 等）。选中后，右侧只显示该分组下可用模型。</li>
+          <li><strong>模型名称是哪一行：</strong>右侧每张 <strong>模型卡片最上面</strong> 的粗体字符串即为模型 ID（新建令牌、填 CC Switch / 客户端时要与这里一致）。</li>
+          <li><strong>价格与怎么计费：</strong>卡片内 <strong>「模型价格」</strong> 一行即单价说明（常见为「$x.xx / 次」或按量文案）；卡片角上的 <strong>小标签</strong> 标明 <strong>按次计费</strong> 或 <strong>按量计费</strong>。左侧 <strong>「计费类型」</strong> 可筛选只看某一种计费。</li>
+        </ul>
+        <p style="margin:0 0 0.85rem; font-size:0.9rem; color:var(--muted)">下图为界面示意；红字批注为举例换算，<strong>一切以控制台当前标价与说明为准</strong>。部分「官方原版 / 高单价」渠道若无需要可不选。</p>
+        <figure class="billing-figure">
+          <figcaption>示意：SVIP 等分组与卡片上的模型名、价格、计费标签</figcaption>
+          <div class="billing-figure__inner">
+            <img src="./pics/svip-group-official-pricing.png" width="1024" height="228" alt="控制台示意：可用令牌分组含 svip，模型卡片展示名称、模型价格与按次计费标签" loading="lazy" decoding="async">
+          </div>
+        </figure>
+        <figure class="billing-figure">
+          <figcaption>示意：临时分组下的模型与按次价格</figcaption>
+          <div class="billing-figure__inner">
+            <img src="./pics/temp-group-pricing.png" width="1024" height="174" alt="控制台示意：临时分组筛选与模型卡片价格" loading="lazy" decoding="async">
+          </div>
+        </figure>
+        <figure class="billing-figure">
+          <figcaption>示意：default / vip 等分组</figcaption>
+          <div class="billing-figure__inner">
+            <img src="./pics/default-vip-group.png" width="1024" height="168" alt="控制台示意：default 与 vip 分组及模型列表" loading="lazy" decoding="async">
+          </div>
+        </figure>
+        <figure class="billing-figure">
+          <figcaption>示意：GPT 分组下的 GPT 系列模型与按次价格</figcaption>
+          <div class="billing-figure__inner">
+            <img src="./pics/gpt-group-models.png" width="1024" height="108" alt="控制台示意：GPT 分组与 gpt 模型卡片价格" loading="lazy" decoding="async">
+          </div>
+        </figure>
+        </div>
+      </details>
+    </div>
+
+    <details class="reg-hint-card reg-hint-card--fold" id="reg-account-section">
+      <summary>
+        <h3 class="reg-hint-card__title reg-hint-card__title--summary">一、注册账号、额度、令牌</h3>
+        <span class="billing-summary__hint" aria-hidden="true">点击展开</span>
+      </summary>
+      <div class="reg-hint-details-inner">
+        <p class="reg-hint-card__body">注册你的账号，获取你的令牌，兑换激活码和续费，查看请求日志。</p>
+        <div class="home-cc-actions">
+          <button type="button" class="btn-ccswitch-go" data-go-tutorial="view-reg-account">进入注册、额度、令牌说明 →</button>
+        </div>
+      </div>
+    </details>
+
+    <details class="reg-hint-card reg-hint-card--fold" id="ccswitch-section">
+      <summary>
+        <h3 class="reg-hint-card__title reg-hint-card__title--summary">二、安装 CC-Switch<span class="tool-config-sub">（管理你的环境，自己懂配 JSON 可跳过不装）</span></h3>
+        <span class="billing-summary__hint" aria-hidden="true">点击展开</span>
+      </summary>
+      <div class="reg-hint-details-inner">
+        <p class="hub-intro hub-intro--home">图形化切换 key、统一配环境；OpenClaw、Cursor、Claude Code 等也常用它承载配置。需分步安装时点击下方进入（含 Windows、macOS 与 Node 前置说明）。</p>
+        <div class="home-cc-actions">
+          <button type="button" class="btn-ccswitch-go" data-go-tutorial="view-ccswitch">进入 CC-Switch 安装教程 →</button>
+        </div>
+      </div>
+    </details>
+
+    <details class="reg-hint-card reg-hint-card--fold" id="tool-config-fold" open="">
+      <summary>
+        <h3 class="reg-hint-card__title reg-hint-card__title--summary">三、工具配置</h3>
+        <span class="billing-summary__hint" aria-hidden="true">点击展开</span>
+      </summary>
+      <div class="reg-hint-details-inner">
+        <p class="hub-intro hub-intro--home">先完成「一、」<strong>注册、额度、令牌</strong>，获取你的 key。URL：<a href="https://newapi.celink.top/" target="_blank" rel="noopener noreferrer">https://newapi.celink.top/</a>，OpenAI 接口：<a href="https://newapi.celink.top/v1" target="_blank" rel="noopener noreferrer">https://newapi.celink.top/v1</a>。</p>
+        <div class="picker-head"><h2>选择工具</h2></div>
+        <div class="btn-grid" role="navigation" aria-label="工具配置教程">
+      <a class="btn-tutorial" href="https://how88.top/relay/index.html#" data-go-tutorial="view-cherry">
+        <span class="btn-tutorial__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path></svg></span>
+        <span class="btn-tutorial__body"><span class="t-title">Cherry Studio</span><span class="t-desc">新手只想对话用这个，配置好即可对话，无法读取文件</span></span>
+        <span class="btn-tutorial__go" aria-hidden="true">→</span>
+      </a>
+      <a class="btn-tutorial" href="https://how88.top/relay/index.html#" data-go-tutorial="view-claude-code">
+        <span class="btn-tutorial__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg></span>
+        <span class="btn-tutorial__body"><span class="t-title">Claude Code</span><span class="t-desc">高级进阶，写代码，写论文</span></span>
+        <span class="btn-tutorial__go" aria-hidden="true">→</span>
+      </a>
+      <a class="btn-tutorial" href="https://how88.top/relay/index.html#" data-go-tutorial="view-claude-app">
+        <span class="btn-tutorial__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8"></path><line x1="12" y1="17" x2="12" y2="21"></line></svg></span>
+        <span class="btn-tutorial__body"><span class="t-title">Claude 桌面端</span><span class="t-desc">官方 App · 第三方推理网关</span></span>
+        <span class="btn-tutorial__go" aria-hidden="true">→</span>
+      </a>
+      <a class="btn-tutorial" href="https://how88.top/relay/index.html#" data-go-tutorial="view-cursor">
+        <span class="btn-tutorial__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M9 9h6M9 15h6"></path></svg></span>
+        <span class="btn-tutorial__body"><span class="t-title">Cursor</span><span class="t-desc">接入 Claude（本页仅 Cursor）</span></span>
+        <span class="btn-tutorial__go" aria-hidden="true">→</span>
+      </a>
+      <a class="btn-tutorial" href="https://how88.top/relay/index.html#" data-go-tutorial="view-vscode">
+        <span class="btn-tutorial__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"></path></svg></span>
+        <span class="btn-tutorial__body"><span class="t-title">VS Code</span><span class="t-desc">接入 Claude（本页仅 VS Code）</span></span>
+        <span class="btn-tutorial__go" aria-hidden="true">→</span>
+      </a>
+      <a class="btn-tutorial" href="https://how88.top/relay/index.html#" data-go-tutorial="view-openclaw">
+        <span class="btn-tutorial__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg></span>
+        <span class="btn-tutorial__body"><span class="t-title">OpenClaw</span><span class="t-desc">龙虾接入教程</span></span>
+        <span class="btn-tutorial__go" aria-hidden="true">→</span>
+      </a>
+      <a class="btn-tutorial" href="https://how88.top/relay/index.html#" data-go-tutorial="view-opencode">
+        <span class="btn-tutorial__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"></path></svg></span>
+        <span class="btn-tutorial__body"><span class="t-title">OpenCode</span><span class="t-desc">接入教程</span></span>
+        <span class="btn-tutorial__go" aria-hidden="true">→</span>
+      </a>
+      <a class="btn-tutorial" href="https://how88.top/relay/index.html#" data-go-tutorial="view-codex">
+        <span class="btn-tutorial__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg></span>
+        <span class="btn-tutorial__body"><span class="t-title">Codex</span><span class="t-desc">GPT 分组令牌 · CC Switch · 官方客户端</span></span>
+        <span class="btn-tutorial__go" aria-hidden="true">→</span>
+      </a>
+      <a class="btn-tutorial" href="https://how88.top/relay/index.html#" data-go-tutorial="view-git">
+        <span class="btn-tutorial__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><line x1="3" y1="12" x2="9" y2="12"></line><line x1="15" y1="12" x2="21" y2="12"></line></svg></span>
+        <span class="btn-tutorial__body"><span class="t-title">备用 Git</span><span class="t-desc">备用 Git 工具安装</span></span>
+        <span class="btn-tutorial__go" aria-hidden="true">→</span>
+      </a>
+        </div>
+      </div>
+    </details>
+
+    <details class="reg-hint-card reg-hint-card--fold" id="veteran-json-fold">
+      <summary>
+        <h3 class="reg-hint-card__title reg-hint-card__title--summary">四、json 配置说明、懂配json的看这里，新手请忽略这里！！！</h3>
+        <span class="billing-summary__hint" aria-hidden="true">点击展开</span>
+      </summary>
+      <div class="reg-hint-details-inner">
+        <p class="hint">下列为精简版 CC-Switch / 环境 JSON 示例：<code>ANTHROPIC_AUTH_TOKEN</code> 换成你的令牌，<code>ANTHROPIC_MODEL</code> 与控制台模型 ID 保持一致。</p>
+        <p class="hint" style="margin-top:1rem; margin-bottom:0.35rem"><strong>claude-opus-4-6 配置</strong></p>
+        <div class="code-block-wrap"><div class="code-block-toolbar"><button type="button" class="btn-copy-code" aria-label="一键复制本段代码">一键复制</button></div><pre><code>{
+  "env": {
+    "ANTHROPIC_AUTH_TOKEN": "替换为你的令牌key，sk-XXX",
+    "ANTHROPIC_BASE_URL": "https://newapi.celink.top",
+    "ANTHROPIC_MODEL": "claude-opus-4-6"
+  },
+  "includeCoAuthoredBy": false,
+  "model": "Opus"
+}</code></pre></div>
+        <p class="hint" style="margin-top:1rem; margin-bottom:0.35rem"><strong>Sonnet 同理（claude-sonnet-4-6）</strong></p>
+        <div class="code-block-wrap"><div class="code-block-toolbar"><button type="button" class="btn-copy-code" aria-label="一键复制本段代码">一键复制</button></div><pre><code>{
+  "env": {
+    "ANTHROPIC_AUTH_TOKEN": "替换为你的令牌key，sk-XXX",
+    "ANTHROPIC_BASE_URL": "https://newapi.celink.top",
+    "ANTHROPIC_MODEL": "claude-sonnet-4-6"
+  },
+  "includeCoAuthoredBy": false,
+  "model": "Sonnet"
+}</code></pre></div>
+        <div class="callout" style="margin-top:1rem">如用 <code>claude-opus-4-7</code> 模型要选 <strong>opus4.7 分组</strong>的 key。</div>
+        <p class="hint" style="margin-top:1rem; margin-bottom:0.35rem"><strong>claude-opus-4-7（令牌须为 opus4.7 分组）</strong></p>
+        <div class="code-block-wrap"><div class="code-block-toolbar"><button type="button" class="btn-copy-code" aria-label="一键复制本段代码">一键复制</button></div><pre><code>{
+  "env": {
+    "ANTHROPIC_AUTH_TOKEN": "替换为你的令牌key，要用opus4.7模型分组下的key",
+    "ANTHROPIC_BASE_URL": "https://newapi.celink.top",
+    "ANTHROPIC_MODEL": "claude-opus-4-7"
+  },
+  "includeCoAuthoredBy": false,
+  "model": "Opus"
+}</code></pre></div>
+        <hr style="border:0;border-top:1px dashed var(--border);margin:1.35rem 0 1rem">
+        <p class="hint" style="margin-bottom:0.5rem"><strong>使用 Claude 模型默认走 Claude 协议：</strong></p>
+        <ul style="margin:0 0 0.85rem; padding-left:1.25rem; color: var(--muted); font-size: 0.9rem; line-height: 1.65">
+          <li><strong>【协议】</strong><code>anthropic-messages</code></li>
+          <li><strong>【URL】</strong><a href="https://newapi.celink.top/" target="_blank" rel="noopener noreferrer">https://newapi.celink.top</a> 或 <a href="https://newapi.celink.top/v1" target="_blank" rel="noopener noreferrer">https://newapi.celink.top/v1</a>（可先都试；一般<strong>不带</strong> <code>/v1</code>；仅当工具要求兼容 OpenAI 协议时再试带 <code>/v1</code>）</li>
+          <li><strong>【模型】</strong><code>claude-opus-4-7</code>、<code>claude-opus-4-6</code>、<code>claude-sonnet-4-6</code></li>
+          <li><strong>【key】</strong>在令牌页按模型选好<strong>对应分组</strong>，复制 key（<code>sk-xxxx</code>）</li>
+        </ul>
+        <div class="callout" style="margin-top:0.85rem">也可将下面整段复制发给 AI，请其按你的软件改配置。</div>
+        <div class="code-block-wrap"><div class="code-block-toolbar"><button type="button" class="btn-copy-code" aria-label="一键复制本段代码">一键复制</button></div><pre><code>使用 Claude 模型默认使用 Claude 协议：
+【协议】：anthropic-messages
+【URL】：https://newapi.celink.top 或 https://newapi.celink.top/v1（都试试，一般不带 /v1；兼容 OpenAI 协议才用带 /v1）
+【模型】：
+claude-opus-4-7
+claude-opus-4-6
+claude-sonnet-4-6
+【key】令牌页选择模型对应分组，复制 key 为 sk-xxxx</code></pre></div>
+      </div>
+    </details>
+    </main>
+
+  </div>
+
+  <!-- ========== 子页模板：顶栏 + 卡片区块（文字压缩为步骤/折叠） ========== -->
+  <div id="view-ccswitch" class="shell shell--tutorial tutorial-page" hidden="" data-tutorial-screen="">
+    <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    <div class="tutorial-head">
+      <div class="tutorial-head__icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M16 3h5v5M4 20L21 3"></path></svg></div>
+      <div><h2>二、安装 CC-Switch</h2><p>管理环境、切换 key；会自行配 JSON 环境变量的可跳过。含 Windows、macOS 与 Node 前置</p></div>
+    </div>
+    <div class="section-card">
+      <h3>1、Windows</h3>
+      <p class="hint">点击下载链接安装（若 GitHub 访问困难可能需要代理）：</p>
+      <p class="hint"><a href="https://github.com/farion1231/cc-switch/releases/download/v3.12.0/CC-Switch-v3.12.0-Windows.msi" target="_blank" rel="noopener">CC-Switch v3.12.0 Windows MSI</a></p>
+    </div>
+    <div class="section-card">
+      <h3>2、macOS</h3>
+      <p class="hint">终端中<strong>分步执行</strong>：</p>
+      <div class="code-block-wrap"><div class="code-block-toolbar"><button type="button" class="btn-copy-code" aria-label="一键复制本段代码">一键复制</button></div><pre><code>brew tap farion1231/ccswitch
+brew install --cask cc-switch</code></pre></div>
+      <p class="hint">安装完成后在「启动台」或「应用程序」打开 CC-Switch。</p>
+    </div>
+    <div class="section-card">
+      <h3>3、前置：Node.js（OpenClaw、Claude Code 必备）</h3>
+      <p class="hint">验证版本（建议 ≥ 22）：</p>
+      <div class="code-block-wrap"><div class="code-block-toolbar"><button type="button" class="btn-copy-code" aria-label="一键复制本段代码">一键复制</button></div><pre><code>在终端（cmd）输入：node -v</code></pre></div>
+      <p class="hint">若显示 <code>command not found</code>，<a href="https://nodejs.org/" target="_blank" rel="noopener">点击这里下载</a> nodejs.org 安装包（Win 用 MSI，Mac 用 PKG），全部选默认参数即可。</p>
+    </div>
+    <div class="tutorial-foot-back">
+      <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    </div>
+  </div>
+
+  <div id="view-claude-code" class="shell shell--tutorial tutorial-page" hidden="" data-tutorial-screen="">
+    <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+
+    <div class="section-card">
+      <header class="cc-tutorial-block-head">
+        <h2>三、Claude Code 配置</h2>
+        <p>4.1 安装 → 对照为<strong>方法一：一键导入</strong>与<strong>方法二（默认折叠）</strong>；<strong>方法一</strong>末尾附<strong>图4</strong>。<strong>方法二</strong>顺序为：图1 → 图2 → <strong>4.2 CC-Switch JSON</strong> → 图3。精简 JSON 见<strong>首页「四、老手、懂配json…」</strong>（折叠）。→ 重启终端后<strong>→ 三、常见报错（默认折叠）</strong></p>
+      </header>
+      <h3>4.1 安装</h3>
+      <p class="hint">命令行执行（若已安装可跳过）：</p>
+      <div class="code-block-wrap"><div class="code-block-toolbar"><button type="button" class="btn-copy-code" aria-label="一键复制本段代码">一键复制</button></div><pre><code>npm i -g @anthropic-ai/claude-code@2.1.87</code></pre></div>
+    </div>
+
+    <div class="section-card section-card--tool-pdf-mirror" role="group" aria-label="三、Claude Code 对照图：方法一（一键导入+图4）、方法二（图1〜2、4.2 JSON、图3）">
+      <div class="cc-method" role="group" aria-labelledby="cc-label-method-1">
+        <h3 class="cc-method-title" id="cc-label-method-1">方法一：一键导入</h3>
+        <div class="cc-method1-lead">
+          <p class="hint" style="margin:0"><strong>打开 CC-Switch「设置」里与 Claude Code 相关的 2 个开关（如图）：一定要打开！</strong>若未安装 CC-Switch，请先点击下方安装。</p>
+          <button type="button" class="btn-ccswitch-go" data-go-tutorial="view-ccswitch">进入 CC-Switch 安装教程 →</button>
+        </div>
+        <figure class="pdf-mirror-page">
+          <img src="./pics/page-01.png" width="975" height="366" alt="三、Claude Code 方法一 · 图1" loading="eager" decoding="async">
+        </figure>
+        <p class="hint">回到网页 <a href="https://newapi.celink.top/console/token" target="_blank" rel="noopener noreferrer">https://newapi.celink.top/console/token</a>，点击<strong>令牌管理</strong>，按你的需求<strong>选对分组后再新增令牌</strong>。<strong>不要乱选分组，不然后面必报错！！！</strong></p>
+        <figure class="pdf-mirror-page">
+          <img src="./pics/method1-02.png" width="1024" height="382" alt="三、Claude Code 方法一 · 令牌与分组说明" loading="lazy" decoding="async">
+        </figure>
+        <figure class="pdf-mirror-page">
+          <img src="./pics/method1-03.png" width="636" height="774" alt="三、Claude Code 方法一 · 填入 CC Switch" loading="lazy" decoding="async">
+        </figure>
+        <figure class="pdf-mirror-page">
+          <img src="./pics/method1-04.png" width="669" height="285" alt="三、Claude Code 方法一 · 打开 CC Switch（浏览器询问）" loading="lazy" decoding="async">
+        </figure>
+        <figure class="pdf-mirror-page">
+          <img src="./pics/method1-05.png" width="1024" height="683" alt="三、Claude Code 方法一 · 确认导入供应商配置" loading="lazy" decoding="async">
+        </figure>
+        <figure class="pdf-mirror-page">
+          <img src="./pics/page-04.png" width="945" height="663" alt="三、Claude Code 图4（方法一）" loading="lazy" decoding="async">
+        </figure>
+      </div>
+      <details class="cc-tutorial-fold-method2" role="group" aria-labelledby="cc-label-method-2">
+        <summary class="cc-method-title cc-method-title--compact" id="cc-label-method-2">方法二：手动配置（方法一失败时候再手动配置）</summary>
+        <div class="cc-tutorial-fold-method2-inner">
+          <figure class="pdf-mirror-page">
+            <img src="./pics/page-01.png" width="975" height="366" alt="三、Claude Code 方法二 · 图1" loading="lazy" decoding="async">
+          </figure>
+          <figure class="pdf-mirror-page">
+            <img src="./pics/page-02.png" width="847" height="1024" alt="三、Claude Code 方法二 · 图2" loading="lazy" decoding="async">
+          </figure>
+          <div class="section-card cc-method2-section-42">
+            <h3>4.2 打开 CC-Switch 新增配置</h3>
+            <p class="hint">右上角 <strong>+</strong> → 预设供应商选<strong>自定义</strong>；供应商名称随便填；备注、官网可不填。粘贴下列 JSON（将 <code>sk-</code> 换成你的令牌），点<strong>使用/激活</strong>，然后<strong>关闭并重新打开终端</strong>，在项目目录输入 <code>claude</code>。</p>
+            <div class="code-block-wrap"><div class="code-block-toolbar"><button type="button" class="btn-copy-code" aria-label="一键复制本段代码">一键复制</button></div><pre><code>{
+  "alwaysThinkingEnabled": true,
+  "env": {
+    "ANTHROPIC_AUTH_TOKEN": "sk-你的key",
+    "ANTHROPIC_BASE_URL": "https://newapi.celink.top",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-opus-4-6",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4-6",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-opus-4-6",
+    "ANTHROPIC_MODEL": "claude-opus-4-6",
+    "ANTHROPIC_REASONING_MODEL": "claude-opus-4-6"
+  },
+  "includeCoAuthoredBy": true
+}</code></pre></div>
+            <p class="hint">关掉终端再开 → 项目目录执行 <code>claude</code>。</p>
+            <div class="callout">模型 ID 以控制台为准，可整段替换。</div>
+          </div>
+          <figure class="pdf-mirror-page">
+            <img src="./pics/page-03.png" width="936" height="867" alt="三、Claude Code 方法二 · 图3" loading="lazy" decoding="async">
+          </figure>
+        </div>
+      </details>
+    </div>
+
+    <details class="reg-hint-card reg-hint-card--fold cc-errors-fold" id="cc-errors-fold" role="region" aria-labelledby="cc-errors-heading">
+      <summary>
+        <h3 class="reg-hint-card__title reg-hint-card__title--summary" id="cc-errors-heading">三、常见报错</h3>
+        <span class="billing-summary__hint" aria-hidden="true">点击展开</span>
+      </summary>
+      <div class="reg-hint-details-inner">
+        <p class="hint">环境冲突 / 登过官方 → 按顺序试。<strong>没报错可直接跳过本节。</strong></p>
+        <div class="section-card section-card--tool-pdf-mirror">
+          <h3>常见报错：所在地区不可用（选做）</h3>
+          <p class="hint">配置完成后若终端出现与下图类似提示（没有则可跳过本小节）：红色报错 <code>Unable to connect to Anthropic services</code>、<code>Failed to connect to api.anthropic.com: ERR_BAD_REQUEST</code>，并提示检查网络或地区；官方说明见 <a href="https://anthropic.com/supported-countries" target="_blank" rel="noopener noreferrer">anthropic.com/supported-countries</a>。</p>
+          <figure class="pdf-mirror-page">
+            <img src="./pics/error-region-onboarding.png" width="800" height="600" alt="Claude Code 终端报错：无法连接 Anthropic / 所在地区不可用示意" loading="lazy" decoding="async">
+          </figure>
+          <p class="hint"><strong>原因：</strong>缺少完成引导（onboarding）校验。可在用户目录下的 <code>~/.claude.json</code>（Windows 多为 <code>C:\Users\你的用户名\.claude.json</code>）中加入或合并字段：</p>
+          <div class="code-block-wrap"><div class="code-block-toolbar"><button type="button" class="btn-copy-code" aria-label="一键复制本段代码">一键复制</button></div><pre><code>"hasCompletedOnboarding": true</code></pre></div>
+          <p class="hint">确保该键位于 JSON 顶层对象中（与同级其它配置并列）。保存后重启终端再试。</p>
+          <div class="callout"><strong>不要加错文件：</strong>请改 <code>~/.claude.json</code>，<strong>不要</strong>写到 <code>~/.claude/settings.json</code>。</div>
+        </div>
+        <div class="section-card section-card--tool-pdf-mirror">
+          <figure class="pdf-mirror-page">
+            <img src="./pics/errors-02.png" width="1190" height="1682" alt="常见报错 对照 1/2" loading="eager" decoding="async">
+          </figure>
+        </div>
+        <div class="section-card">
+          <h3>A 方案（1）</h3>
+          <p class="hint"><strong>没报错的不用看，直接跳过！！！</strong></p>
+          <p class="hint"><strong>苹果用户：</strong></p>
+          <div class="code-block-wrap"><div class="code-block-toolbar"><button type="button" class="btn-copy-code" aria-label="一键复制本段代码">一键复制</button></div><pre><code># Zsh 用户（macOS 默认）
+echo 'export ANTHROPIC_AUTH_TOKEN="令牌里的key，sk-开头"' &gt;&gt; ~/.zshrc
+echo 'export ANTHROPIC_BASE_URL="https://newapi.celink.top"' &gt;&gt; ~/.zshrc
+source ~/.zshrc
+
+# Bash 用户
+echo 'export ANTHROPIC_AUTH_TOKEN="令牌里的key，sk-开头"' &gt;&gt; ~/.bashrc
+echo 'export ANTHROPIC_BASE_URL="https://newapi.celink.top"' &gt;&gt; ~/.bashrc
+source ~/.bashrc</code></pre></div>
+          <div class="callout">注意：永久设置后需要重启终端才能生效。</div>
+          <p class="hint" style="margin-top:1rem"><strong>win 系统用户：</strong></p>
+          <p class="hint"><strong>方法一：图形化配置（推荐，永久生效）</strong></p>
+          <p class="hint">a. 右键点击「此电脑」→ 选择「属性」<br>b. 点击「高级系统设置」<br>c. 在「系统属性」窗口中点击「环境变量」</p>
+          <p class="hint"><strong>重要：</strong>在「系统变量」部分点击「新建」（多人共享电脑可选择「用户变量」）</p>
+          <p class="hint">d. 添加以下两个变量：</p>
+          <ul style="margin:0.35rem 0 0.65rem; padding-left:1.25rem; color: var(--muted); font-size: 0.88rem; line-height: 1.55">
+            <li>变量名：<code>ANTHROPIC_AUTH_TOKEN</code>，变量值：<code>sk-xxx</code>（令牌里的 key）</li>
+            <li>变量名：<code>ANTHROPIC_BASE_URL</code>，变量值：<code>https://newapi.celink.top</code></li>
+          </ul>
+          <p class="hint">e. 点击「确定」保存</p>
+          <p class="hint" style="margin-top:0.85rem"><strong>方法二：PowerShell（永久设置，打开 PowerShell）</strong></p>
+          <div class="code-block-wrap"><div class="code-block-toolbar"><button type="button" class="btn-copy-code" aria-label="一键复制本段代码">一键复制</button></div><pre><code>[Environment]::SetEnvironmentVariable("ANTHROPIC_AUTH_TOKEN", "sk-xxx", "User")
+[Environment]::SetEnvironmentVariable("ANTHROPIC_BASE_URL", "https://newapi.celink.top", "User")</code></pre></div>
+          <p class="hint" style="margin-top:0.85rem"><strong>方法三：命令提示符（永久设置，CMD）</strong></p>
+          <div class="code-block-wrap"><div class="code-block-toolbar"><button type="button" class="btn-copy-code" aria-label="一键复制本段代码">一键复制</button></div><pre><code>setx ANTHROPIC_AUTH_TOKEN "sk-xxx"
+setx ANTHROPIC_BASE_URL "https://newapi.celink.top"</code></pre></div>
+          <div class="callout">注意：永久设置后需要重启终端才能生效。推荐使用永久配置方式。</div>
+        </div>
+        <div class="section-card section-card--tool-pdf-mirror">
+          <figure class="pdf-mirror-page">
+            <img src="./pics/errors-03.png" width="1190" height="1682" alt="常见报错 对照 2/2" loading="lazy" decoding="async">
+          </figure>
+        </div>
+        <div class="section-card">
+          <h3>报错2、出现/login错误时候，按照下面去做</h3>
+          <p class="hint">Claude Code 里执行 <code>/logout</code> → 当前命令行终端输入 <code>npm i -g @anthropic-ai/claude-code@2.1.87</code> → 终端输入 <code>claude</code> → 按 2 下回车 → 可以对话。</p>
+          <figure class="pdf-mirror-page">
+            <img src="./pics/logout-01.png" width="1024" height="874" alt="/logout、重装 npm 包、claude 与主题初始步骤示意" loading="lazy" decoding="async">
+          </figure>
+          <figure class="pdf-mirror-page">
+            <img src="./pics/logout-02.png" width="1024" height="315" alt="claude 进入后可正常对话示意" loading="lazy" decoding="async">
+          </figure>
+        </div>
+        <div class="section-card">
+          <h3>C 报错bash、git时候：还缺 Git？按照下面去做</h3>
+          <p class="hint"><a href="https://git-scm.com/install/windows" target="_blank" rel="noopener">Git for Windows</a> 点击下载，全选默认，安装即可。</p>
+        </div>
+      </div>
+    </details>
+
+    <div class="tutorial-foot-back">
+      <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    </div>
+  </div>
+
+  <div id="view-claude-app" class="shell shell--tutorial tutorial-page" hidden="" data-tutorial-screen="">
+    <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    <div class="tutorial-head">
+      <div class="tutorial-head__icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8"></path><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
+      <div><h2>Claude 桌面 App</h2><p>官方客户端 · Developer 模式 · Configure third-party inference（Anthropic-compatible 网关）</p></div>
+    </div>
+    <div class="section-card">
+      <p class="hint">请先完成首页<strong>一、注册账号、额度、令牌</strong>，拿到你的 API key。网关 Base URL 示例：<code>https://newapi.celink.top</code>（以控制台为准）。模型 ID 须与令牌分组一致，勿填错。</p>
+      <div class="callout">需<strong>桌面版 Claude</strong>（Windows / macOS）。以下为「三方推理」链路，不是 Claude Code 终端。</div>
+    </div>
+    <div class="section-card section-card--tool-pdf-mirror" role="region" aria-label="Claude 桌面 App 分步配图">
+      <div class="cc-method1-lead" style="margin-bottom:1rem">
+        <h3 style="margin:0 0 0.5rem; font-size:1.05rem">01 打开应用，停留在登录页</h3>
+        <p class="hint" style="margin:0">启动 Claude 桌面端，出现 <strong>Welcome back</strong> 等登录界面即可（可用邮箱或 Google 登录）。</p>
+      </div>
+      <figure class="pdf-mirror-page">
+        <img src="./pics/step-01-login.png" width="825" height="690" alt="Claude 桌面 App 步骤 01：登录欢迎页" loading="eager" decoding="async">
+      </figure>
+      <div class="cc-method1-lead" style="margin:1.25rem 0 1rem">
+        <h3 style="margin:0 0 0.5rem; font-size:1.05rem">02 开启开发者模式</h3>
+        <p class="hint" style="margin:0">顶部菜单 <strong>Help</strong> → <strong>Troubleshooting</strong> → 选择 <strong>Enable developer mode</strong>。</p>
+      </div>
+      <figure class="pdf-mirror-page">
+        <img src="./pics/step-02-dev-mode.png" width="882" height="674" alt="Claude 桌面 App 步骤 02：Help 菜单中开启开发者模式" loading="lazy" decoding="async">
+      </figure>
+      <div class="cc-method1-lead" style="margin:1.25rem 0 1rem">
+        <h3 style="margin:0 0 0.5rem; font-size:1.05rem">03 打开「配置第三方推理」</h3>
+        <p class="hint" style="margin:0">菜单栏出现 <strong>Developer</strong> 后，点击 <strong>Developer</strong> → <strong>Configure Third-Party Inference…</strong>。</p>
+      </div>
+      <figure class="pdf-mirror-page">
+        <img src="./pics/step-03-developer-menu.png" width="734" height="819" alt="Claude 桌面 App 步骤 03：Developer 菜单与 Configure Third-Party Inference" loading="lazy" decoding="async">
+      </figure>
+      <div class="cc-method1-lead" style="margin:1.25rem 0 1rem">
+        <h3 style="margin:0 0 0.5rem; font-size:1.05rem">04 连接方式与网关凭据</h3>
+        <p class="hint" style="margin:0">左侧 <strong>Connection</strong> 选中 <strong>Gateway (Anthropic-compatible)</strong>。在 <strong>Gateway Credentials</strong> 中填写：<strong>Gateway base URL</strong>（如 <code>https://newapi.celink.top</code>）、<strong>Gateway API key</strong> 填你自己的令牌、<strong>Gateway auth scheme</strong> 选 <code>bearer</code>。下方 <strong>Identity &amp; Models</strong> 里点 <strong>+ Add</strong> 添加要用的模型 ID。</p>
+      </div>
+      <figure class="pdf-mirror-page">
+        <img src="./pics/step-04-gateway.png" width="996" height="1024" alt="Claude 桌面 App 步骤 04：Gateway 与凭据、添加模型" loading="lazy" decoding="async">
+      </figure>
+      <div class="cc-method1-lead" style="margin:1.25rem 0 1rem">
+        <h3 style="margin:0 0 0.5rem; font-size:1.05rem">05 模型列表与保存</h3>
+        <p class="hint" style="margin:0">在 <strong>Model list</strong> 中逐项填写模型 ID（如 <code>claude-opus-4-6</code>、<code>claude-sonnet-4-6</code>），名称须与渠道一致。<strong>Offer 1M-context variant</strong> 建议保持关闭：部分逆向/中转渠道不支持 1M 窗口。最后点击 <strong>Apply locally</strong> 保存。</p>
+        <div class="callout" style="margin-top:0.75rem">模型名、分组与令牌须对应；改完后若对话仍异常，可尝试重启 App。</div>
+      </div>
+      <figure class="pdf-mirror-page">
+        <img src="./pics/step-05-models.png" width="986" height="852" alt="Claude 桌面 App 步骤 05：Identity 与模型列表、Apply locally" loading="lazy" decoding="async">
+      </figure>
+      <div class="cc-method1-lead" style="margin:1.25rem 0 1rem">
+        <h3 style="margin:0 0 0.5rem; font-size:1.05rem">06 对话界面与切换模型</h3>
+        <p class="hint" style="margin:0">进入会话后，界面类似下图（Cowork 等视图）。右下角可在已配置的模型之间切换（如 Opus 4.6、Sonnet 4.6 等）；左下角显示 <strong>Gateway</strong> 等与连接方式有关的提示时可对照上文核对配置。</p>
+      </div>
+      <figure class="pdf-mirror-page">
+        <img src="./pics/step-06-cowork-model-picker.png" width="1024" height="611" alt="Claude 桌面 App 步骤 06：Cowork 对话界面与右下角模型选择" loading="lazy" decoding="async">
+      </figure>
+    </div>
+    <div class="section-card">
+      <div class="callout" role="note" style="margin:0;line-height:1.65">
+        <strong>报错不要找我！！报错不要找我！！</strong>我没用过 Claude 桌面端 App，遇到问题<strong>自己问 AI 解决</strong>！！！
+      </div>
+    </div>
+    <div class="tutorial-foot-back">
+      <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    </div>
+  </div>
+
+  <div id="view-openclaw" class="shell shell--tutorial tutorial-page" hidden="" data-tutorial-screen="">
+    <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    <div class="tutorial-head">
+      <div class="tutorial-head__icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path></svg></div>
+      <div><h2>OpenClaw</h2><p>脚本安装 → CC-Switch → 网关</p></div>
+    </div>
+    <div class="section-card section-card--tool-pdf-mirror">
+    <figure class="pdf-mirror-page">
+      <img src="./pics/page-01(1).png" width="1190" height="1682" alt="四、OpenClaw 对照 1/3" loading="eager" decoding="async">
+    </figure>
+    <figure class="pdf-mirror-page">
+      <img src="./pics/page-02(1).png" width="1190" height="1682" alt="四、OpenClaw 对照 2/3" loading="lazy" decoding="async">
+    </figure>
+    <figure class="pdf-mirror-page">
+      <img src="./pics/page-03(1).png" width="1190" height="1682" alt="四、OpenClaw 对照 3/3" loading="lazy" decoding="async">
+    </figure>
+    </div>
+    <div class="section-card">
+      <h3>安装</h3>
+      <div class="code-block-wrap"><div class="code-block-toolbar"><button type="button" class="btn-copy-code" aria-label="一键复制本段代码">一键复制</button></div><pre><code>curl -fsSL https://openclaw.ai/install.cmd -o install.cmd &amp;&amp; install.cmd &amp;&amp; del install.cmd</code></pre></div>
+      <div class="code-block-wrap"><div class="code-block-toolbar"><button type="button" class="btn-copy-code" aria-label="一键复制本段代码">一键复制</button></div><pre><code>curl -fsSL https://openclaw.ai/install.sh | bash</code></pre></div>
+      <details class="fold"><summary>向导选项摘要（点展开）</summary>
+        <ul><li>yes → QuickStart → use → 多处 skip / keep current；hooks 按需空格选中。</li></ul>
+      </details>
+    </div>
+    <div class="section-card">
+      <h3>运行</h3>
+      <div class="code-block-wrap"><div class="code-block-toolbar"><button type="button" class="btn-copy-code" aria-label="一键复制本段代码">一键复制</button></div><pre><code>openclaw gateway</code></pre></div>
+      <p class="hint">浏览器打开 <a href="http://127.0.0.1:18789/" target="_blank" rel="noopener">127.0.0.1:18789</a> 选模型保存。</p>
+      <p class="hint">修复：<code>openclaw doctor --fix</code></p>
+    </div>
+    <div class="tutorial-foot-back">
+      <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    </div>
+  </div>
+
+  <div id="view-cursor" class="shell shell--tutorial tutorial-page" hidden="" data-tutorial-screen="">
+    <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    <div class="tutorial-head">
+      <div class="tutorial-head__icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg></div>
+      <div><h2>Cursor</h2><p>与 Claude Code 同一份 JSON。先完成「方法一」一键导入，再按下图在 <strong>Cursor</strong> 内收尾。</p></div>
+    </div>
+    <div class="section-card section-card--tool-pdf-mirror" role="group" aria-label="Cursor：方法一 一键导入">
+      <div class="cc-method" role="group" aria-labelledby="cursor-cc-m1">
+        <h3 class="cc-method-title" id="cursor-cc-m1">方法一：一键导入</h3>
+        <div class="cc-method1-lead">
+          <p class="hint" style="margin:0"><strong>打开 CC-Switch「设置」里与 Claude Code 相关的 2 个开关（如图）：一定要打开！</strong>若未安装 CC-Switch，请先点击下方安装。</p>
+          <button type="button" class="btn-ccswitch-go" data-go-tutorial="view-ccswitch">进入 CC-Switch 安装教程 →</button>
+        </div>
+        <figure class="pdf-mirror-page">
+          <img src="./pics/import-01.png" width="975" height="366" alt="五 · Cursor · 方法一 · 图1" loading="eager" decoding="async">
+        </figure>
+        <p class="hint">回到网页 <a href="https://newapi.celink.top/console/token" target="_blank" rel="noopener noreferrer">https://newapi.celink.top/console/token</a>，点击<strong>令牌管理</strong>，按你的需求<strong>选对分组后再新增令牌</strong>。<strong>不要乱选分组，不然后面必报错！！！</strong></p>
+        <figure class="pdf-mirror-page">
+          <img src="./pics/import-02.png" width="1024" height="382" alt="五 · Cursor · 方法一 · 令牌与分组说明" loading="lazy" decoding="async">
+        </figure>
+        <figure class="pdf-mirror-page">
+          <img src="./pics/import-03.png" width="636" height="774" alt="五 · Cursor · 方法一 · 填入 CC Switch" loading="lazy" decoding="async">
+        </figure>
+        <figure class="pdf-mirror-page">
+          <img src="./pics/import-04.png" width="669" height="285" alt="五 · Cursor · 方法一 · 打开 CC Switch（浏览器询问）" loading="lazy" decoding="async">
+        </figure>
+        <figure class="pdf-mirror-page">
+          <img src="./pics/import-05.png" width="1024" height="683" alt="五 · Cursor · 方法一 · 确认导入供应商配置" loading="lazy" decoding="async">
+        </figure>
+      </div>
+    </div>
+    <div class="section-card section-card--tool-pdf-mirror" role="region" aria-labelledby="cursor-editor-tail">
+      <h3 id="cursor-editor-tail">配图（Cursor 专属）</h3>
+      <figure class="pdf-mirror-page">
+        <img src="./pics/cursor-01.png" width="1190" height="1682" alt="五 · Cursor · 配图 1/4" loading="lazy" decoding="async">
+      </figure>
+      <figure class="pdf-mirror-page">
+        <img src="./pics/cursor-02.png" width="1190" height="1682" alt="五 · Cursor · 配图 2/4" loading="lazy" decoding="async">
+      </figure>
+      <figure class="pdf-mirror-page">
+        <img src="./pics/cursor-03.png" width="1190" height="1682" alt="五 · Cursor · 配图 3/4" loading="lazy" decoding="async">
+      </figure>
+      <figure class="pdf-mirror-page">
+        <img src="./pics/cursor-04.png" width="1190" height="1682" alt="五 · Cursor · 配图 4/4" loading="lazy" decoding="async">
+      </figure>
+    </div>
+    <div class="section-card">
+      <h3>收尾</h3>
+      <ol class="step-list">
+        <li>在 <strong>Cursor</strong> 中安装官方 <strong>Claude</strong> 插件。</li>
+        <li>CC-Switch 新建配置 → 粘贴与上文「方法一」<strong>同款</strong> JSON → <strong>激活</strong>。</li>
+        <li><strong>完全退出</strong> Cursor 再打开（否则不生效）。</li>
+      </ol>
+      <p class="hint">弹窗可选右下角小字（按原文提示）。</p>
+    </div>
+    <div class="section-card">
+      <h3>备用</h3>
+      <p class="hint">若报错<strong>找不到 Claude</strong>：先<strong>完全关闭 Cursor</strong>，再<strong>重新打开 Cursor</strong>，然后<strong>再打开对话窗</strong>。</p>
+      <p class="hint">若重启仍无法解决，可安装并使用终端里的 <strong>Claude Code</strong>：</p>
+      <button type="button" class="btn-ccswitch-go" data-go-tutorial="view-claude-code">进入 Claude Code 教程 →</button>
+    </div>
+    <div class="tutorial-foot-back">
+      <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    </div>
+  </div>
+
+  <div id="view-vscode" class="shell shell--tutorial tutorial-page" hidden="" data-tutorial-screen="">
+    <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    <div class="tutorial-head">
+      <div class="tutorial-head__icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"></path></svg></div>
+      <div><h2>VS Code</h2><p>与 Claude Code 同一份 JSON。先完成「方法一」一键导入，再按下图在 <strong>Visual Studio Code</strong>（或兼容扩展的编辑器）内收尾。</p></div>
+    </div>
+    <div class="section-card section-card--tool-pdf-mirror" role="group" aria-label="VS Code：方法一 一键导入">
+      <div class="cc-method" role="group" aria-labelledby="vscode-cc-m1">
+        <h3 class="cc-method-title" id="vscode-cc-m1">方法一：一键导入</h3>
+        <div class="cc-method1-lead">
+          <p class="hint" style="margin:0"><strong>打开 CC-Switch「设置」里与 Claude Code 相关的 2 个开关（如图）：一定要打开！</strong>若未安装 CC-Switch，请先点击下方安装。</p>
+          <button type="button" class="btn-ccswitch-go" data-go-tutorial="view-ccswitch">进入 CC-Switch 安装教程 →</button>
+        </div>
+        <figure class="pdf-mirror-page">
+          <img src="./pics/import-01.png" width="975" height="366" alt="五 · VS Code · 方法一 · 图1" loading="eager" decoding="async">
+        </figure>
+        <p class="hint">回到网页 <a href="https://newapi.celink.top/console/token" target="_blank" rel="noopener noreferrer">https://newapi.celink.top/console/token</a>，点击<strong>令牌管理</strong>，按你的需求<strong>选对分组后再新增令牌</strong>。<strong>不要乱选分组，不然后面必报错！！！</strong></p>
+        <figure class="pdf-mirror-page">
+          <img src="./pics/import-02.png" width="1024" height="382" alt="五 · VS Code · 方法一 · 令牌与分组说明" loading="lazy" decoding="async">
+        </figure>
+        <figure class="pdf-mirror-page">
+          <img src="./pics/import-03.png" width="636" height="774" alt="五 · VS Code · 方法一 · 填入 CC Switch" loading="lazy" decoding="async">
+        </figure>
+        <figure class="pdf-mirror-page">
+          <img src="./pics/import-04.png" width="669" height="285" alt="五 · VS Code · 方法一 · 打开 CC Switch（浏览器询问）" loading="lazy" decoding="async">
+        </figure>
+        <figure class="pdf-mirror-page">
+          <img src="./pics/import-05.png" width="1024" height="683" alt="五 · VS Code · 方法一 · 确认导入供应商配置" loading="lazy" decoding="async">
+        </figure>
+      </div>
+    </div>
+    <div class="section-card section-card--tool-pdf-mirror" role="region" aria-labelledby="vscode-editor-tail">
+      <h3 id="vscode-editor-tail">配图（VS Code 专属）</h3>
+      <figure class="pdf-mirror-page">
+        <img src="./pics/vscode-01.png" width="1190" height="1682" alt="五 · VS Code · 配图 1/2" loading="lazy" decoding="async">
+      </figure>
+      <figure class="pdf-mirror-page">
+        <img src="./pics/vscode-02.png" width="1190" height="1682" alt="五 · VS Code · 配图 2/2" loading="lazy" decoding="async">
+      </figure>
+    </div>
+    <div class="section-card">
+      <h3>收尾</h3>
+      <ol class="step-list">
+        <li>在 <strong>VS Code</strong> 扩展内安装 Anthropic（或官方） <strong>Claude</strong> / Claude Code 插件（以扩展市场为准）。</li>
+        <li>CC-Switch 新建配置 → 粘贴与上文「方法一」<strong>同款</strong> JSON → <strong>激活</strong>。</li>
+        <li><strong>完全退出</strong> VS Code 再打开（否则不生效）。</li>
+      </ol>
+      <p class="hint">弹窗可选右下角小字（按原文提示）。</p>
+    </div>
+    <div class="section-card">
+      <h3>备用</h3>
+      <p class="hint">若报错<strong>找不到 Claude</strong>：先<strong>完全关闭 VS Code</strong>（或当前编辑器），再<strong>重新打开</strong>，然后<strong>再打开对话窗</strong>。</p>
+      <p class="hint">若重启仍无法解决，可安装并使用终端里的 <strong>Claude Code</strong>：</p>
+      <button type="button" class="btn-ccswitch-go" data-go-tutorial="view-claude-code">进入 Claude Code 教程 →</button>
+    </div>
+    <div class="tutorial-foot-back">
+      <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    </div>
+  </div>
+
+  <div id="view-opencode" class="shell shell--tutorial tutorial-page" hidden="" data-tutorial-screen="">
+    <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    <div class="tutorial-head">
+      <div class="tutorial-head__icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"></path></svg></div>
+      <div><h2>OpenCode</h2><p>URL + apiKey</p></div>
+    </div>
+    <div class="section-card section-card--tool-pdf-mirror">
+    <figure class="pdf-mirror-page">
+      <img src="./pics/page-01(2).png" width="1190" height="1682" alt="六、OpenCode 配置 对照 1/2" loading="eager" decoding="async">
+    </figure>
+    <figure class="pdf-mirror-page">
+      <img src="./pics/page-02(2).png" width="1190" height="1682" alt="六、OpenCode 配置 对照 2/2" loading="lazy" decoding="async">
+    </figure>
+    </div>
+    <div class="section-card">
+      <p class="hint">新增配置，URL：<code>https://newapi.celink.top/v1</code></p>
+      <div class="code-block-wrap"><div class="code-block-toolbar"><button type="button" class="btn-copy-code" aria-label="一键复制本段代码">一键复制</button></div><pre><code>{
+  "npm": "@ai-sdk/anthropic",
+  "options": {
+    "baseURL": "https://newapi.celink.top/v1",
+    "apiKey": "sk-你的key"
+  },
+  "models": {
+    "claude-sonnet-4-6": { "name": "claude-sonnet-4-6" },
+    "claude-opus-4-6": { "name": "claude-opus-4-6" }
+  }
+}</code></pre></div>
+      <p class="hint">进入后用 <code>/model</code> 切换。</p>
+    </div>
+    <div class="tutorial-foot-back">
+      <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    </div>
+  </div>
+
+  <div id="view-codex" class="shell shell--tutorial tutorial-page" hidden="" data-tutorial-screen="">
+    <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    <div class="tutorial-head">
+      <div class="tutorial-head__icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg></div>
+      <div><h2>Codex（OpenAI 客户端）</h2><p>GPT 分组令牌 → CC Switch 一键导入 → 换种方式登录并粘贴 key。仅覆盖<strong>接入</strong>，用法请自行查官方或网上教程。</p></div>
+    </div>
+    <div class="section-card">
+      <p class="hint">请先完成首页<strong>一、注册账号、额度、令牌</strong>。Codex 走 <strong>OpenAI 兼容</strong> 链路，须使用控制台里的<strong>GPT 专用分组</strong>令牌，<strong>不要</strong>选 Claude 分组。</p>
+      <div class="cc-method1-lead" style="margin-top:0.85rem">
+        <p class="hint" style="margin:0"><strong>须先安装 CC-Switch</strong>，否则网页「填入 CC Switch」无法拉起客户端。</p>
+        <button type="button" class="btn-ccswitch-go" data-go-tutorial="view-ccswitch">进入 CC-Switch 安装教程 →</button>
+      </div>
+    </div>
+    <div class="section-card section-card--tool-pdf-mirror" role="region" aria-label="Codex 接入分步配图">
+      <figure class="pdf-mirror-page">
+        <figcaption>步骤 1 · 创建 GPT 分组令牌</figcaption>
+        <img src="./pics/step-01-create-token.png" width="667" height="1024" alt="Codex 教程 步骤 1：控制台创建令牌，选 GPT 分组、永不过期与无限额度示例" loading="eager" decoding="async">
+      </figure>
+      <figure class="pdf-mirror-page">
+        <figcaption>步骤 2 · 令牌列表 → CC Switch</figcaption>
+        <img src="./pics/step-02-ccswitch-menu.png" width="1024" height="269" alt="Codex 教程 步骤 2：分组列与聊天旁下拉菜单中选 CC Switch" loading="lazy" decoding="async">
+      </figure>
+      <figure class="pdf-mirror-page">
+        <figcaption>步骤 3 · 填入 CC Switch（应用类型 Codex + 主模型）</figcaption>
+        <img src="./pics/step-03-fill-ccswitch.png" width="726" height="525" alt="Codex 教程 步骤 3：填入 CC Switch 弹窗中选 Codex 与主模型" loading="lazy" decoding="async">
+      </figure>
+      <figure class="pdf-mirror-page">
+        <figcaption>步骤 4 · 确认导入</figcaption>
+        <img src="./pics/step-04-confirm-import.png" width="1024" height="682" alt="Codex 教程 步骤 4：CC Switch 确认导入供应商配置" loading="lazy" decoding="async">
+      </figure>
+      <figure class="pdf-mirror-page">
+        <figcaption>步骤 5 · 换种方式登录</figcaption>
+        <img src="./pics/step-05-alt-login.png" width="1024" height="680" alt="Codex 教程 步骤 5：Codex 欢迎页点击换种方式登录" loading="lazy" decoding="async">
+      </figure>
+      <figure class="pdf-mirror-page">
+        <figcaption>步骤 6 · 粘贴 OpenAI API 密钥</figcaption>
+        <img src="./pics/step-06-paste-api-key.png" width="1024" height="900" alt="Codex 教程 步骤 6：从控制台复制 sk 密钥到 Codex" loading="lazy" decoding="async">
+      </figure>
+      <figure class="pdf-mirror-page">
+        <figcaption>步骤 7 · 接入成功后可对话</figcaption>
+        <img src="./pics/step-07-chat.png" width="1024" height="313" alt="Codex 教程 步骤 7：对话界面示意" loading="lazy" decoding="async">
+      </figure>
+    </div>
+    <div class="section-card">
+      <div class="callout" role="note" style="margin:0;line-height:1.65">
+        <strong>使用方式请自行上网查教程。</strong>本页只保证按图完成<strong>令牌 + CC Switch + 客户端登录</strong>链路；功能玩法、报错排查请用官方说明或自有渠道解决。
+      </div>
+    </div>
+    <div class="tutorial-foot-back">
+      <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    </div>
+  </div>
+
+  <div id="view-cherry" class="shell shell--tutorial tutorial-page" data-tutorial-screen="" hidden="">
+    <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    <div class="tutorial-head">
+      <div class="tutorial-head__icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path></svg></div>
+      <div><h2>Cherry Studio</h2><p>轻量对话客户端</p></div>
+    </div>
+    <div class="section-card">
+      <p class="hint">下载：<a href="https://www.cherry-ai.com/" target="_blank" rel="noopener">cherry-ai.com</a> → 安装 → 填 API。</p>
+      <div class="callout">读文档 / 读项目文件常要配 <strong>MCP</strong>；写代码更推荐 Claude Code。</div>
+    </div>
+    <div class="section-card section-card--tool-pdf-mirror">
+    <figure class="pdf-mirror-page">
+      <img src="./pics/page-01(3).png" width="924" height="564" alt="七、Cherry Studio 对照 图1" loading="eager" decoding="async">
+    </figure>
+    <div class="cherry-scheme" role="group" aria-labelledby="cherry-label-scheme-1">
+      <h3 class="cherry-scheme-title" id="cherry-label-scheme-1">方案1</h3>
+      <figure class="pdf-mirror-page">
+        <img src="./pics/page-02(3).png" width="1024" height="308" alt="Cherry Studio 步骤示意（方案1 · 图2）" loading="lazy" decoding="async">
+      </figure>
+      <figure class="pdf-mirror-page">
+        <img src="./pics/page-03(2).png" width="711" height="351" alt="Cherry Studio 步骤示意（方案1 · 图3）" loading="lazy" decoding="async">
+      </figure>
+      <figure class="pdf-mirror-page">
+        <img src="./pics/page-05.png" width="879" height="645" alt="Cherry Studio 步骤示意（方案1 · 图5）" loading="lazy" decoding="async">
+      </figure>
+    </div>
+    <div class="cherry-scheme" role="group" aria-labelledby="cherry-label-scheme-2">
+      <h3 class="cherry-scheme-title" id="cherry-label-scheme-2">方案2（方案1失败时候再使用！！！）</h3>
+      <figure class="pdf-mirror-page">
+        <img src="./pics/page-04(1).png" width="909" height="579" alt="Cherry Studio 步骤示意（方案2 · 图4）" loading="lazy" decoding="async">
+      </figure>
+      <figure class="pdf-mirror-page">
+        <img src="./pics/page-05.png" width="879" height="645" alt="Cherry Studio 步骤示意（方案2 · 图5）" loading="lazy" decoding="async">
+      </figure>
+    </div>
+    </div>
+    <div class="tutorial-foot-back">
+      <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    </div>
+  </div>
+
+  <div id="view-git" class="shell shell--tutorial tutorial-page" hidden="" data-tutorial-screen="">
+    <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    <div class="tutorial-head">
+      <div class="tutorial-head__icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="3"></circle></svg></div>
+      <div><h2>Git（Windows）</h2><p>一路默认即可</p></div>
+    </div>
+    <div class="section-card section-card--tool-pdf-mirror">
+    <figure class="pdf-mirror-page">
+      <img src="./pics/page-01(4).png" width="1190" height="1682" alt="备用安装 Git 对照 1/1" loading="eager" decoding="async">
+    </figure>
+    </div>
+    <div class="section-card">
+      <p class="hint"><a href="https://git-scm.com/install/windows" target="_blank" rel="noopener">git-scm.com/install/windows</a></p>
+    </div>
+    <div class="tutorial-foot-back">
+      <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    </div>
+  </div>
+
+  <div id="view-reg-account" class="shell shell--tutorial tutorial-page" hidden="" data-tutorial-screen="">
+    <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    <div class="tutorial-head">
+      <div class="tutorial-head__icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+      <div><h2>一、注册账号、额度、令牌</h2><p>注册你的账号，获取你的令牌，兑换激活码和续费，查看请求日志。</p></div>
+    </div>
+    <div class="section-card section-card--tool-pdf-mirror">
+    <figure class="pdf-mirror-page">
+      <figcaption>第 1 页</figcaption>
+      <img src="./pics/page-01(5).png" width="1190" height="1682" alt="《1、账号注册（通过兑换码获取额度）》第 1 页整页图" loading="eager" decoding="async">
+    </figure>
+    <figure class="pdf-mirror-page">
+      <figcaption>第 2 页</figcaption>
+      <img src="./pics/page-02(4).png" width="1190" height="1682" alt="《1、账号注册（通过兑换码获取额度）》第 2 页整页图" loading="lazy" decoding="async">
+    </figure>
+    <figure class="pdf-mirror-page">
+      <figcaption>第 3 页</figcaption>
+      <img src="./pics/page-03(3).png" width="1190" height="1682" alt="《1、账号注册（通过兑换码获取额度）》第 3 页整页图" loading="lazy" decoding="async">
+    </figure>
+    </div>
+    <div class="tutorial-foot-back">
+      <button type="button" class="btn-back" data-go-home="">← 返回首页</button>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * 视图切换：首页与子教程互斥显示；无第三方依赖。
+     */
+    (function () {
+      var home = document.getElementById("view-home");
+      var screens = document.querySelectorAll("[data-tutorial-screen]");
+
+      function goHome() {
+        home.removeAttribute("hidden");
+        screens.forEach(function (el) { el.setAttribute("hidden", ""); });
+        document.title = "Claude 中转站 · 使用教程";
+        window.scrollTo(0, 0);
+      }
+
+      function goTutorial(id) {
+        var target = document.getElementById(id);
+        if (!target) return;
+        home.setAttribute("hidden", "");
+        screens.forEach(function (el) {
+          if (el.id === id) { el.removeAttribute("hidden"); }
+          else { el.setAttribute("hidden", ""); }
+        });
+        var t = target.querySelector(".tutorial-head h2, h2");
+        document.title = t ? t.textContent.trim() + " · 教程" : "教程";
+        window.scrollTo(0, 0);
+      }
+
+      document.querySelectorAll("[data-go-tutorial]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          goTutorial(btn.getAttribute("data-go-tutorial"));
+        });
+      });
+      document.querySelectorAll("[data-go-home]").forEach(function (btn) {
+        btn.addEventListener("click", goHome);
+      });
+      document.querySelectorAll("a[data-go-tutorial]").forEach(function (a) {
+        a.addEventListener("click", function (e) {
+          e.preventDefault();
+          goTutorial(a.getAttribute("data-go-tutorial"));
+        });
+      });
+      document.querySelectorAll("a[data-open-reg-home]").forEach(function (a) {
+        a.addEventListener("click", function (e) {
+          e.preventDefault();
+          goHome();
+          var d = document.getElementById("reg-account-section");
+          if (d) {
+            d.setAttribute("open", "");
+            window.requestAnimationFrame(function () {
+              d.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+          }
+        });
+      });
+      document.querySelectorAll("[data-close-details]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var id = btn.getAttribute("data-close-details");
+          var d = id ? document.getElementById(id) : null;
+          if (d) {
+            d.removeAttribute("open");
+            d.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }
+        });
+      });
+    })();
+
+    (function () {
+      function flashDone(btn) {
+        btn.textContent = "已复制";
+        btn.classList.add("is-done");
+        clearTimeout(btn._copyTimer);
+        btn._copyTimer = setTimeout(function () {
+          btn.textContent = "一键复制";
+          btn.classList.remove("is-done");
+        }, 2000);
+      }
+      function flashFail(btn) {
+        btn.textContent = "请手动复制";
+        clearTimeout(btn._copyTimer);
+        btn._copyTimer = setTimeout(function () {
+          btn.textContent = "一键复制";
+        }, 2000);
+      }
+      document.querySelectorAll("pre").forEach(function (pre) {
+        if (pre.closest(".code-block-wrap")) return;
+        var wrap = document.createElement("div");
+        wrap.className = "code-block-wrap";
+        var bar = document.createElement("div");
+        bar.className = "code-block-toolbar";
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn-copy-code";
+        btn.setAttribute("aria-label", "一键复制本段代码");
+        btn.textContent = "一键复制";
+        bar.appendChild(btn);
+        pre.parentNode.insertBefore(wrap, pre);
+        wrap.appendChild(bar);
+        wrap.appendChild(pre);
+        btn.addEventListener("click", function () {
+          var el = pre.querySelector("code") || pre;
+          var text = (el.textContent || "").replace(/\u00a0/g, " ");
+          text = text.replace(/\r\n/g, "\n").trim();
+          function runCopy() {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              return navigator.clipboard.writeText(text);
+            }
+            return new Promise(function (resolve, reject) {
+              var ta = document.createElement("textarea");
+              ta.value = text;
+              ta.setAttribute("readonly", "");
+              ta.style.position = "fixed";
+              ta.style.left = "-9999px";
+              document.body.appendChild(ta);
+              ta.select();
+              try {
+                if (document.execCommand("copy")) resolve();
+                else reject();
+              } catch (e) {
+                reject(e);
+              }
+              document.body.removeChild(ta);
+            });
+          }
+          runCopy().then(flashDone.bind(null, btn)).catch(function () {
+            flashFail(btn);
+          });
+        });
+      });
+    })();
+  </script>
+
+
+<div data-rocketpen-skip="true" class="element-selector-box element-selector-selection" style="display: none;"></div><div class="element-selector-box element-selector-hover" style="display: none;"></div></body></html>

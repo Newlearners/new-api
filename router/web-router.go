@@ -21,6 +21,8 @@ type ThemeAssets struct {
 	ClassicIndexPage []byte
 }
 
+const defaultTutorialPath = "/docs/tutorial/"
+
 func SetWebRouter(router *gin.Engine, assets ThemeAssets) {
 	defaultFS := common.EmbedFolder(assets.DefaultBuildFS, "web/default/dist")
 	classicFS := common.EmbedFolder(assets.ClassicBuildFS, "web/classic/dist")
@@ -29,6 +31,10 @@ func SetWebRouter(router *gin.Engine, assets ThemeAssets) {
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 	router.Use(middleware.GlobalWebRateLimit())
 	router.Use(middleware.Cache())
+	router.GET("/docs", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, defaultTutorialPath)
+	})
+	router.StaticFS("/docs/tutorial", http.Dir("docs/tutorial"))
 	router.Use(static.Serve("/", themeFS))
 	router.NoRoute(func(c *gin.Context) {
 		c.Set(middleware.RouteTagKey, "web")

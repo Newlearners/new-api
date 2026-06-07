@@ -3670,6 +3670,9 @@
     "Redirect URI": "Redirect URI",
     "Google Cloud Project ID 用于 x-goog-user-project，请使用已启用 Gemini API 的项目 ID。": "Google Cloud Project ID は x-goog-user-project に使用されます。Gemini API を有効にしたプロジェクト ID を使用してください。",
     "说明：生成结果是可直接粘贴到渠道密钥里的 JSON（包含 access_token / refresh_token / project_id）。": "注：生成結果はチャンネルキーに直接貼り付けられる JSON（access_token / refresh_token / project_id を含む）です。",
-    "已新增 {{count}} 个模型：{{list}}": "{{count}} 個のモデルを追加しました: {{list}}"
+    "已新增 {{count}} 个模型：{{list}}": "{{count}} 個のモデルを追加しました: {{list}}",
+    "火影AI 小店充值": "HuoyingAI ストアチャージ",
+    "可以在这里充值。": "こちらのストアでチャージできます。",
+    "前往小店充值": "ストアでチャージ"
   }
 }
